@@ -5,61 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Рибалка Віті</title>
     <style>
-        body {
-            margin: 0; padding: 0;
-            background: linear-gradient(to bottom, #0a3d62, #1e90ff);
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            height: 100vh;
-            overflow: hidden;
-        }
+        body { margin: 0; padding: 0; background: linear-gradient(to bottom, #0a3d62, #1e90ff); color: white; font-family: Arial, sans-serif; text-align: center; height: 100vh; overflow: hidden; }
         .header { padding: 15px 0; font-size: 22px; font-weight: bold; background: rgba(0,0,0,0.3); }
         .score { font-size: 34px; margin: 15px 0 5px 0; font-weight: bold; }
         .energy { font-size: 24px; margin-bottom: 25px; }
-        #tap-area {
-            width: 260px; height: 260px; margin: 20px auto;
-            background: radial-gradient(circle, #ffeb3b, #ff9800);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 130px; cursor: pointer;
-            transition: transform 0.08s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            user-select: none;
-        }
+        #tap-area { width: 260px; height: 260px; margin: 20px auto; background: radial-gradient(circle, #ffeb3b, #ff9800); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 130px; cursor: pointer; transition: transform 0.08s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.4); user-select: none; }
         #tap-area:active { transform: scale(0.85); }
 
-        .tabs {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            display: flex; background: rgba(0,0,0,0.75);
-            padding: 10px 0; z-index: 100;
-        }
+        .tabs { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: rgba(0,0,0,0.75); padding: 10px 0; z-index: 100; }
         .tab { flex: 1; padding: 16px 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
         .tab.active { background: #ff9800; color: black; border-radius: 10px; margin: 0 6px; }
 
         .screen { display: none; padding: 20px 15px; padding-bottom: 100px; height: calc(100vh - 70px); overflow-y: auto; }
         .screen.active { display: block; }
 
-        button {
-            background: #ff9800; color: white; border: none;
-            padding: 14px 24px; margin: 12px 6px; border-radius: 12px;
-            font-size: 17px; font-weight: bold; width: 90%; max-width: 340px;
-        }
-        .task {
-            background: rgba(255,255,255,0.12);
-            padding: 18px; margin: 15px auto; border-radius: 14px;
-            max-width: 340px; text-align: left;
-        }
-        .message {
-            position: absolute; font-size: 26px; color: #ffeb3b;
-            font-weight: bold; pointer-events: none;
-            animation: floatUp 1.8s forwards;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
-        }
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-140px); }
-        }
+        button { background: #ff9800; color: white; border: none; padding: 14px 24px; margin: 12px 6px; border-radius: 12px; font-size: 17px; font-weight: bold; width: 90%; max-width: 340px; }
+        .task { background: rgba(255,255,255,0.12); padding: 18px; margin: 15px auto; border-radius: 14px; max-width: 340px; text-align: left; }
     </style>
 </head>
 <body>
@@ -86,7 +47,7 @@
         <div class="task">
             <strong>📢 Підписатися на канал власника</strong><br><br>
             <button onclick="openChannel()">Відкрити канал @vexoo_hub</button>
-            <button onclick="claimChannelReward()" id="claimBtn">Я підписався — отримати +498</button>
+            <button onclick="checkAndClaimChannel()" id="claimBtn">Перевірити підписку та отримати +498</button>
         </div>
 
         <div class="task">
@@ -111,9 +72,9 @@
         let score = 0;
         let energy = 100;
         const userId = "8694292932";
-        const botUsername = "Fdicbskcb_bot";   // ← ОБОВ'ЯЗКОВО зміни на реальний username свого бота!
+        const botUsername = "Fdicbskcb_bot";   // ← Зміни на реальний username твого бота!
 
-        const CHANNEL_REWARD_CLAIMED = 'channelRewardClaimed';
+        const CHANNEL_REWARD_KEY = 'channelRewardClaimed';
 
         function loadProgress() {
             const savedScore = localStorage.getItem('rybalkaScore');
@@ -121,9 +82,8 @@
             if (savedScore) score = parseInt(savedScore);
             if (savedEnergy) energy = parseInt(savedEnergy);
             updateScores();
-            
-            // Вимикаємо кнопку якщо вже отримано
-            if (localStorage.getItem(CHANNEL_REWARD_CLAIMED) === 'true') {
+
+            if (localStorage.getItem(CHANNEL_REWARD_KEY) === 'true') {
                 document.getElementById('claimBtn').disabled = true;
                 document.getElementById('claimBtn').textContent = '✅ Бонус вже отримано';
             }
@@ -178,7 +138,6 @@
             document.querySelectorAll('.tab')[tabIndex].classList.add('active');
         }
 
-        // Відкрити канал
         function openChannel() {
             const url = "https://t.me/vexoo_hub";
             if (window.Telegram && window.Telegram.WebApp) {
@@ -188,37 +147,38 @@
             }
         }
 
-        // Отримати бонус після підписки
-        function claimChannelReward() {
-            if (localStorage.getItem(CHANNEL_REWARD_CLAIMED) === 'true') {
+        // Перевірка + видача бонусу (поки що без реальної перевірки підписки)
+        function checkAndClaimChannel() {
+            if (localStorage.getItem(CHANNEL_REWARD_KEY) === 'true') {
                 return alert('✅ Ти вже отримав цей бонус!');
             }
 
+            // Тут буде виклик до backend пізніше
             score += 498;
             updateScores();
             saveProgress();
-            localStorage.setItem(CHANNEL_REWARD_CLAIMED, 'true');
+            localStorage.setItem(CHANNEL_REWARD_KEY, 'true');
 
             const btn = document.getElementById('claimBtn');
             btn.disabled = true;
             btn.textContent = '✅ Бонус вже отримано';
 
-            alert('🎉 +498 РибКоінів успішно нараховано!\nДякуємо за підписку на @vexoo_hub');
+            alert('🎉 +498 РибКоінів нараховано!\nДякуємо за підписку на канал!');
         }
 
         function copyReferralLink() {
             const refLink = `https://t.me/${botUsername}?start=ref${userId}`;
             navigator.clipboard.writeText(refLink).then(() => {
-                alert(`✅ Посилання скопійовано в буфер!\n\n${refLink}\n\nПоділись з другом — +150 коли він потапає!`);
+                alert(`✅ Посилання скопійовано!\n\n${refLink}`);
             }).catch(() => {
-                alert(`Реферальне посилання:\n\n${refLink}\n\nДовго натисни і скопіюй вручну`);
+                alert(`Реферальне посилання:\n\n${refLink}\n\nДовго натисни і скопіюй`);
             });
         }
 
         function activatePromo() {
             const code = document.getElementById('promoInput').value.trim();
             if (!code) return alert("Введіть промокод!");
-            alert(`Промокод "${code}" активовано! (тестова версія)`);
+            alert(`Промокод "${code}" активовано! (тест)`);
         }
 
         window.onload = () => {
