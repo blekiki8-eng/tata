@@ -49,7 +49,6 @@
             transform: scale(0.85);
         }
 
-        /* Вкладки */
         .tabs {
             position: fixed;
             bottom: 0;
@@ -78,6 +77,8 @@
             display: none;
             padding: 20px 15px;
             padding-bottom: 100px;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
         }
         .screen.active {
             display: block;
@@ -106,6 +107,15 @@
             margin: 10px 0;
         }
 
+        .task {
+            background: rgba(255,255,255,0.12);
+            padding: 18px;
+            margin: 15px auto;
+            border-radius: 14px;
+            max-width: 340px;
+            text-align: left;
+        }
+
         .message {
             position: absolute;
             font-size: 26px;
@@ -119,61 +129,46 @@
             0% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-140px); }
         }
-
-        .task {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            margin: 15px auto;
-            border-radius: 12px;
-            max-width: 320px;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Головний баланс завжди видно на тап-екрані -->
     <div id="screen-tap" class="screen active">
         <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
         <div class="energy">Енергія: <span id="energy">100</span>/100</div>
         <div id="tap-area">🐠</div>
     </div>
 
-    <!-- Profile -->
     <div id="screen-profile" class="screen">
         <h2>👤 Профіль</h2>
         <div class="task">
-            <p><strong>User ID:</strong> <span id="user-id">123456789</span></p>
+            <p><strong>User ID:</strong> <span id="user-id">8694292932</span></p>
             <p><strong>Улов:</strong> <span id="profile-score">0</span> РибКоінів</p>
             <p><strong>Енергія:</strong> <span id="profile-energy">100</span>/100</p>
             <p><strong>Рівень:</strong> Початківець 🎣</p>
-            <p><strong>Дата реєстрації:</strong> Квітень 2026</p>
         </div>
     </div>
 
-    <!-- Rewards -->
     <div id="screen-rewards" class="screen">
         <h2>🏆 Нагороди та Завдання</h2>
         
         <div class="task">
-            <strong>📢 Підписатися на канал</strong><br>
-            <small>@vexoo_hub</small><br><br>
-            <button onclick="claimChannelReward()">Отримати +498 РибКоінів</button>
+            <strong>📢 Підписатися на канал власника</strong><br><br>
+            <button onclick="openChannel()">Підписатися на @vexoo_hub та отримати +498</button>
         </div>
 
         <div class="task">
-            <strong>👥 Реферальна програма</strong><br>
-            <small>Запроси друга — отримай +150 РибКоінів, коли він потапає</small><br><br>
-            <button onclick="showReferralLink()">Показати реферальне посилання</button>
+            <strong>👥 Реферальна програма</strong><br><br>
+            <button onclick="copyReferralLink()">Показати та скопіювати реферальне посилання (+150 за друга)</button>
         </div>
 
         <div class="task">
-            <strong>🎟 Промокод</strong><br>
-            <input type="text" id="promoInput" placeholder="Введіть промокод">
-            <button onclick="activatePromo()">Активувати промокод</button>
+            <strong>🎟 Активувати промокод</strong><br>
+            <input type="text" id="promoInput" placeholder="Введіть промокод тут">
+            <button onclick="activatePromo()">Активувати</button>
         </div>
     </div>
 
-    <!-- Вкладки -->
     <div class="tabs">
         <div class="tab active" onclick="switchTab(0)">Тапати</div>
         <div class="tab" onclick="switchTab(1)">Profile</div>
@@ -183,16 +178,14 @@
     <script>
         let score = 0;
         let energy = 100;
-        let userId = "8694292932";   // можна пізніше зробити динамічним
+        const userId = "8694292932"; 
+        const botUsername = "Fdicbskcb_bot";   // ← Зміни на реальний username твого бота!
 
-        // Завантаження прогресу
         function loadProgress() {
             const savedScore = localStorage.getItem('rybalkaScore');
             const savedEnergy = localStorage.getItem('rybalkaEnergy');
-            
             if (savedScore) score = parseInt(savedScore);
             if (savedEnergy) energy = parseInt(savedEnergy);
-            
             updateScores();
         }
 
@@ -216,10 +209,8 @@
                 alert("⚠️ Енергія закінчилася! Зачекай трохи 🎣");
                 return;
             }
-
             score += 2;
             energy -= 1;
-
             updateScores();
             createFloatingText(e.clientX, e.clientY + window.scrollY, '+2');
             saveProgress();
@@ -235,7 +226,6 @@
             setTimeout(() => msg.remove(), 1800);
         }
 
-        // Відновлення енергії
         setInterval(() => {
             if (energy < 100) {
                 energy = Math.min(100, energy + 1);
@@ -244,40 +234,47 @@
             }
         }, 3000);
 
-        // Перемикання вкладок
         function switchTab(tabIndex) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            
-            document.getElementById(['screen-tap', 'screen-profile', 'screen-rewards'][tabIndex]).classList.add('active');
+            document.getElementById(['screen-tap','screen-profile','screen-rewards'][tabIndex]).classList.add('active');
             document.querySelectorAll('.tab')[tabIndex].classList.add('active');
         }
 
-        // Rewards functions
-        function claimChannelReward() {
+        // Відкрити канал
+        function openChannel() {
+            // Використовуємо Telegram WebApp API якщо доступний, інакше звичайне вікно
+            const channelUrl = "https://t.me/vexoo_hub";
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.openLink(channelUrl);
+            } else {
+                window.open(channelUrl, '_blank');
+            }
+            // Бонус дається відразу (в реальності краще перевіряти підписку пізніше)
             score += 498;
             updateScores();
             saveProgress();
-            alert('✅ +498 РибКоінів за підписку на @vexoo_hub!\nДякуємо!');
+            alert('✅ Канал відкрито!\nТи отримав +498 РибКоінів за підписку!');
         }
 
-        function showReferralLink() {
-            const botUsername = "Fdicbskcb_bot"; // заміни на реальний username твого бота
-            alert(`🔗 Твоє реферальне посилання:\n\nhttps://t.me/${botUsername}?start=ref${userId}\n\nПоділись з другом.\nКоли він зайде і потапає — ти отримаєш +150 РибКоінів!`);
+        // Скопіювати реферальне посилання
+        function copyReferralLink() {
+            const refLink = `https://t.me/${botUsername}?start=ref${userId}`;
+            
+            navigator.clipboard.writeText(refLink).then(() => {
+                alert(`✅ Реферальне посилання скопійовано!\n\n${refLink}\n\nПоділись з другом — +150 РибКоінів коли він потапає!`);
+            }).catch(() => {
+                alert(`Реферальне посилання:\n\n${refLink}\n\nДовго натисни та скопіюй вручну`);
+            });
         }
 
         function activatePromo() {
             const code = document.getElementById('promoInput').value.trim();
-            if (!code) {
-                alert("Введіть промокод!");
-                return;
-            }
-            // Поки що просто повідомлення. Пізніше додамо реальну логіку
-            alert(`Промокод "${code}" активовано!\n(Поки що це тестова версія)`);
-            // Тут пізніше можна додати реальні промокоди
+            if (!code) return alert("Введіть промокод!");
+            alert(`Промокод "${code}" активовано! (тестова версія)`);
+            // Тут пізніше додамо реальну перевірку промокодів
         }
 
-        // Ініціалізація
         window.onload = () => {
             loadProgress();
         };
