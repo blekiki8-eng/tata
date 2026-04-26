@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Рибалка Клікер</title>
+    <title>Рибалка Віті</title>
     <style>
         body {
             margin: 0;
@@ -19,70 +19,77 @@
             padding: 20px;
         }
         #fish {
-            width: 220px;
-            height: 220px;
+            width: 240px;
+            height: 240px;
             margin: 30px auto;
             cursor: pointer;
             transition: transform 0.1s;
             user-select: none;
         }
         #fish:active {
-            transform: scale(0.85);
+            transform: scale(0.82);
         }
         .score {
             font-size: 28px;
             margin: 10px 0;
+            font-weight: bold;
         }
         .energy {
-            font-size: 20px;
+            font-size: 22px;
             margin: 15px 0;
         }
         button {
             background: #ff9800;
             color: white;
             border: none;
-            padding: 12px 24px;
-            margin: 10px;
-            border-radius: 10px;
+            padding: 14px 28px;
+            margin: 10px 5px;
+            border-radius: 12px;
             font-size: 18px;
+            font-weight: bold;
         }
         .message {
             position: absolute;
-            font-size: 18px;
+            font-size: 22px;
             color: #ffeb3b;
+            font-weight: bold;
             pointer-events: none;
-            animation: floatUp 1.5s forwards;
+            animation: floatUp 1.8s forwards;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
         }
         @keyframes floatUp {
             0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-100px); }
+            100% { opacity: 0; transform: translateY(-120px); }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🎣 Рибалка Віті</h1>
+        
         <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
         <div class="energy">Енергія: <span id="energy">100</span>/100</div>
         
-        <img id="fish" src="https://i.imgur.com/5z5z5z5.png" alt="Риба"> <!-- Тут буде картинка риби -->
+        <!-- Нова нормальна картинка риби -->
+        <img id="fish" src="https://i.imgur.com/8vN5v3L.png" alt="Риба">
         
-        <button onclick="claimDaily()">Щоденний бонус</button>
+        <button onclick="claimDaily()">Щоденний бонус (+500)</button>
         <button onclick="showReferrals()">Запросити друга (+500)</button>
     </div>
 
     <script>
         let score = 0;
         let energy = 100;
-        const energyRegenRate = 1; // відновлення енергії кожні 3 секунди
 
         const scoreEl = document.getElementById('score');
         const energyEl = document.getElementById('energy');
         const fish = document.getElementById('fish');
 
-        // Тап по рибі
         fish.addEventListener('click', (e) => {
-            if (energy <= 0) return;
+            if (energy <= 0) {
+                alert("Енергія закінчилася! Зачекай трохи 🎣");
+                return;
+            }
 
             score += 10;
             energy -= 1;
@@ -90,8 +97,7 @@
             scoreEl.textContent = score;
             energyEl.textContent = energy;
 
-            // Анімація +1
-            createFloatingText(e.clientX, e.clientY, '+10');
+            createFloatingText(e.clientX, e.clientY + window.scrollY, '+10');
         });
 
         function createFloatingText(x, y, text) {
@@ -101,35 +107,35 @@
             msg.style.left = x + 'px';
             msg.style.top = y + 'px';
             document.body.appendChild(msg);
-
-            setTimeout(() => msg.remove(), 1500);
+            setTimeout(() => msg.remove(), 1800);
         }
 
-        // Відновлення енергії
+        // Відновлення енергії кожні 3 секунди
         setInterval(() => {
             if (energy < 100) {
-                energy = Math.min(100, energy + energyRegenRate);
+                energy = Math.min(100, energy + 1);
                 energyEl.textContent = energy;
             }
         }, 3000);
 
-        // Щоденний бонус (просто для демо)
         function claimDaily() {
-            alert('✅ Ти отримав 500 РибКоінів за щоденний вхід!');
             score += 500;
             scoreEl.textContent = score;
+            alert('✅ Ти отримав щоденний бонус +500 РибКоінів!');
         }
 
-        // Реферали (просто демо)
         function showReferrals() {
-            alert('🔗 Твоє реферальне посилання:\nhttps://t.me/VityaRybalka_bot?start=ref' + Math.floor(Math.random()*10000));
+            const refCode = Math.floor(10000 + Math.random() * 90000);
+            alert(`🔗 Твоє реферальне посилання:\nhttps://t.me/твій_бот?start=ref${refCode}\n\nЗапроси друга — отримай +500 РибКоінів!`);
             score += 500;
             scoreEl.textContent = score;
         }
 
-        // Повідомлення при завантаженні
+        // Привітання при першому запуску
         window.onload = () => {
-            alert('🎣 Добро пожаловать на рибалку!\nТапай по рибі, щоб ловити улов.\nЕнергія відновлюється з часом.');
+            if (score === 0) {
+                alert('🎣 Ласкаво просимо на рибалку!\n\nТапай по рибі, щоб ловити улов.\nЕнергія відновлюється автоматично.');
+            }
         };
     </script>
 </body>
