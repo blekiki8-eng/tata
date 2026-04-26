@@ -6,8 +6,7 @@
     <title>Рибалка Віті</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background: linear-gradient(to bottom, #0a3d62, #1e90ff);
             color: white;
             font-family: Arial, sans-serif;
@@ -15,113 +14,45 @@
             height: 100vh;
             overflow: hidden;
         }
-        .header {
-            padding: 15px 0;
-            font-size: 22px;
-            font-weight: bold;
-            background: rgba(0,0,0,0.3);
-        }
-        .score {
-            font-size: 34px;
-            margin: 15px 0 5px 0;
-            font-weight: bold;
-        }
-        .energy {
-            font-size: 24px;
-            margin-bottom: 25px;
-        }
+        .header { padding: 15px 0; font-size: 22px; font-weight: bold; background: rgba(0,0,0,0.3); }
+        .score { font-size: 34px; margin: 15px 0 5px 0; font-weight: bold; }
+        .energy { font-size: 24px; margin-bottom: 25px; }
         #tap-area {
-            width: 260px;
-            height: 260px;
-            margin: 20px auto;
+            width: 260px; height: 260px; margin: 20px auto;
             background: radial-gradient(circle, #ffeb3b, #ff9800);
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 130px;
-            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 130px; cursor: pointer;
             transition: transform 0.08s ease;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
             user-select: none;
         }
-        #tap-area:active {
-            transform: scale(0.85);
-        }
+        #tap-area:active { transform: scale(0.85); }
 
         .tabs {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            display: flex;
-            background: rgba(0, 0, 0, 0.75);
-            padding: 10px 0;
-            z-index: 100;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            display: flex; background: rgba(0,0,0,0.75);
+            padding: 10px 0; z-index: 100;
         }
-        .tab {
-            flex: 1;
-            padding: 16px 10px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .tab.active {
-            background: #ff9800;
-            color: black;
-            border-radius: 10px;
-            margin: 0 6px;
-        }
+        .tab { flex: 1; padding: 16px 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .tab.active { background: #ff9800; color: black; border-radius: 10px; margin: 0 6px; }
 
-        .screen {
-            display: none;
-            padding: 20px 15px;
-            padding-bottom: 100px;
-            height: calc(100vh - 70px);
-            overflow-y: auto;
-        }
-        .screen.active {
-            display: block;
-        }
+        .screen { display: none; padding: 20px 15px; padding-bottom: 100px; height: calc(100vh - 70px); overflow-y: auto; }
+        .screen.active { display: block; }
 
         button {
-            background: #ff9800;
-            color: white;
-            border: none;
-            padding: 14px 24px;
-            margin: 12px 6px;
-            border-radius: 12px;
-            font-size: 17px;
-            font-weight: bold;
-            width: 90%;
-            max-width: 320px;
+            background: #ff9800; color: white; border: none;
+            padding: 14px 24px; margin: 12px 6px; border-radius: 12px;
+            font-size: 17px; font-weight: bold; width: 90%; max-width: 340px;
         }
-
-        input {
-            padding: 14px;
-            font-size: 16px;
-            border-radius: 10px;
-            border: none;
-            width: 80%;
-            max-width: 280px;
-            margin: 10px 0;
-        }
-
         .task {
             background: rgba(255,255,255,0.12);
-            padding: 18px;
-            margin: 15px auto;
-            border-radius: 14px;
-            max-width: 340px;
-            text-align: left;
+            padding: 18px; margin: 15px auto; border-radius: 14px;
+            max-width: 340px; text-align: left;
         }
-
         .message {
-            position: absolute;
-            font-size: 26px;
-            color: #ffeb3b;
-            font-weight: bold;
-            pointer-events: none;
+            position: absolute; font-size: 26px; color: #ffeb3b;
+            font-weight: bold; pointer-events: none;
             animation: floatUp 1.8s forwards;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
         }
@@ -154,17 +85,18 @@
         
         <div class="task">
             <strong>📢 Підписатися на канал власника</strong><br><br>
-            <button onclick="openChannel()">Підписатися на @vexoo_hub та отримати +498</button>
+            <button onclick="openChannel()">Відкрити канал @vexoo_hub</button>
+            <button onclick="claimChannelReward()" id="claimBtn">Я підписався — отримати +498</button>
         </div>
 
         <div class="task">
             <strong>👥 Реферальна програма</strong><br><br>
-            <button onclick="copyReferralLink()">Показати та скопіювати реферальне посилання (+150 за друга)</button>
+            <button onclick="copyReferralLink()">Скопіювати реферальне посилання (+150 за друга)</button>
         </div>
 
         <div class="task">
-            <strong>🎟 Активувати промокод</strong><br>
-            <input type="text" id="promoInput" placeholder="Введіть промокод тут">
+            <strong>🎟 Промокод</strong><br>
+            <input type="text" id="promoInput" placeholder="Введіть промокод">
             <button onclick="activatePromo()">Активувати</button>
         </div>
     </div>
@@ -178,8 +110,10 @@
     <script>
         let score = 0;
         let energy = 100;
-        const userId = "8694292932"; 
-        const botUsername = "Fdicbskcb_bot";   // ← Зміни на реальний username твого бота!
+        const userId = "8694292932";
+        const botUsername = "Fdicbskcb_bot";   // ← ОБОВ'ЯЗКОВО зміни на реальний username свого бота!
+
+        const CHANNEL_REWARD_CLAIMED = 'channelRewardClaimed';
 
         function loadProgress() {
             const savedScore = localStorage.getItem('rybalkaScore');
@@ -187,6 +121,12 @@
             if (savedScore) score = parseInt(savedScore);
             if (savedEnergy) energy = parseInt(savedEnergy);
             updateScores();
+            
+            // Вимикаємо кнопку якщо вже отримано
+            if (localStorage.getItem(CHANNEL_REWARD_CLAIMED) === 'true') {
+                document.getElementById('claimBtn').disabled = true;
+                document.getElementById('claimBtn').textContent = '✅ Бонус вже отримано';
+            }
         }
 
         function saveProgress() {
@@ -205,10 +145,7 @@
         const tapArea = document.getElementById('tap-area');
 
         tapArea.addEventListener('click', (e) => {
-            if (energy <= 0) {
-                alert("⚠️ Енергія закінчилася! Зачекай трохи 🎣");
-                return;
-            }
+            if (energy <= 0) return alert("⚠️ Енергія закінчилася! Зачекай трохи 🎣");
             score += 2;
             energy -= 1;
             updateScores();
@@ -243,28 +180,38 @@
 
         // Відкрити канал
         function openChannel() {
-            // Використовуємо Telegram WebApp API якщо доступний, інакше звичайне вікно
-            const channelUrl = "https://t.me/vexoo_hub";
+            const url = "https://t.me/vexoo_hub";
             if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.openLink(channelUrl);
+                window.Telegram.WebApp.openLink(url);
             } else {
-                window.open(channelUrl, '_blank');
+                window.open(url, '_blank');
             }
-            // Бонус дається відразу (в реальності краще перевіряти підписку пізніше)
+        }
+
+        // Отримати бонус після підписки
+        function claimChannelReward() {
+            if (localStorage.getItem(CHANNEL_REWARD_CLAIMED) === 'true') {
+                return alert('✅ Ти вже отримав цей бонус!');
+            }
+
             score += 498;
             updateScores();
             saveProgress();
-            alert('✅ Канал відкрито!\nТи отримав +498 РибКоінів за підписку!');
+            localStorage.setItem(CHANNEL_REWARD_CLAIMED, 'true');
+
+            const btn = document.getElementById('claimBtn');
+            btn.disabled = true;
+            btn.textContent = '✅ Бонус вже отримано';
+
+            alert('🎉 +498 РибКоінів успішно нараховано!\nДякуємо за підписку на @vexoo_hub');
         }
 
-        // Скопіювати реферальне посилання
         function copyReferralLink() {
             const refLink = `https://t.me/${botUsername}?start=ref${userId}`;
-            
             navigator.clipboard.writeText(refLink).then(() => {
-                alert(`✅ Реферальне посилання скопійовано!\n\n${refLink}\n\nПоділись з другом — +150 РибКоінів коли він потапає!`);
+                alert(`✅ Посилання скопійовано в буфер!\n\n${refLink}\n\nПоділись з другом — +150 коли він потапає!`);
             }).catch(() => {
-                alert(`Реферальне посилання:\n\n${refLink}\n\nДовго натисни та скопіюй вручну`);
+                alert(`Реферальне посилання:\n\n${refLink}\n\nДовго натисни і скопіюй вручну`);
             });
         }
 
@@ -272,7 +219,6 @@
             const code = document.getElementById('promoInput').value.trim();
             if (!code) return alert("Введіть промокод!");
             alert(`Промокод "${code}" активовано! (тестова версія)`);
-            // Тут пізніше додамо реальну перевірку промокодів
         }
 
         window.onload = () => {
