@@ -19,46 +19,25 @@
         }
         #tap-area:active { transform: scale(0.85); }
 
-        .tabs {
-            position: fixed; bottom: 0; left: 0; right: 0; display: flex;
-            background: rgba(0,0,0,0.75); padding: 8px 0; z-index: 100;
-        }
-        .tab {
-            flex: 1; padding: 14px 8px; font-size: 16px; font-weight: bold; cursor: pointer;
-        }
+        .tabs { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: rgba(0,0,0,0.75); padding: 8px 0; z-index: 100; }
+        .tab { flex: 1; padding: 14px 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .tab.active { background: #ff9800; color: black; border-radius: 10px; margin: 0 4px; }
 
         .screen { display: none; padding: 20px 15px; padding-bottom: 90px; height: calc(100vh - 75px); overflow-y: auto; }
         .screen.active { display: block; }
 
-        button {
-            background: #ff9800; color: white; border: none; padding: 14px 24px;
-            margin: 12px 6px; border-radius: 12px; font-size: 17px; font-weight: bold;
-            width: 90%; max-width: 340px;
-        }
+        button { background: #ff9800; color: white; border: none; padding: 14px 24px; margin: 12px 6px; border-radius: 12px; font-size: 17px; font-weight: bold; width: 90%; max-width: 340px; }
         .task { background: rgba(255,255,255,0.12); padding: 18px; margin: 15px auto; border-radius: 14px; max-width: 340px; text-align: left; }
-
-        .fishing-area {
-            width: 280px; height: 280px; margin: 30px auto; background: #1565c0; border-radius: 20px;
-            position: relative; overflow: hidden; border: 4px solid #ffeb3b;
-        }
-        .bobber {
-            position: absolute; width: 40px; height: 40px; background: #fff; border-radius: 50%;
-            top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30px;
-            transition: top 1.5s ease-in-out; cursor: pointer;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Тапати -->
     <div id="screen-tap" class="screen active">
         <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
         <div class="energy">Енергія: <span id="energy">100</span>/100</div>
         <div id="tap-area">🐠</div>
     </div>
 
-    <!-- Profile -->
     <div id="screen-profile" class="screen">
         <h2>👤 Профіль</h2>
         <div class="task">
@@ -69,7 +48,6 @@
         </div>
     </div>
 
-    <!-- Rewards -->
     <div id="screen-rewards" class="screen">
         <h2>🏆 Нагороди та Завдання</h2>
         
@@ -80,7 +58,7 @@
 
         <div class="task">
             <strong>👥 Реферальна програма</strong><br><br>
-            <button onclick="copyReferralLink()">Скопіювати реферальне посилання (+150)</button>
+            <button onclick="copyReferralLink()">Скопіювати реферальне посилання (+150 за друга)</button>
         </div>
 
         <div class="task">
@@ -90,18 +68,16 @@
         </div>
     </div>
 
-    <!-- Нова вкладка Fishing -->
     <div id="screen-fishing" class="screen">
         <h2>🎣 Риболовля</h2>
         <p>Закинь вудку і лови рибу!</p>
-        <div class="fishing-area" id="fishingArea">
-            <div class="bobber" id="bobber">🎣</div>
+        <div class="fishing-area" id="fishingArea" style="width:280px;height:280px;margin:30px auto;background:#1565c0;border-radius:20px;position:relative;overflow:hidden;border:4px solid #ffeb3b;">
+            <div class="bobber" id="bobber" style="position:absolute;width:40px;height:40px;background:#fff;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);font-size:30px;transition:top 1.5s ease-in-out;cursor:pointer;">🎣</div>
         </div>
         <button onclick="castRod()">Закинути вудку</button>
-        <p id="fishingResult" style="margin-top: 15px; font-size: 18px;"></p>
+        <p id="fishingResult" style="margin-top:15px;font-size:18px;"></p>
     </div>
 
-    <!-- Вкладки -->
     <div class="tabs">
         <div class="tab active" onclick="switchTab(0)">Тапати</div>
         <div class="tab" onclick="switchTab(1)">Profile</div>
@@ -113,20 +89,16 @@
         let score = 0;
         let energy = 100;
         const userId = "8694292932";
-        const botUsername = "Fdicbskcb_bot";   // ← Зміни на реальний username твого бота!
+        const botUsername = "Fdicbskcb_bot";   // ← Тут має бути точний username твого бота!
 
         const CHANNEL_REWARD_KEY = 'channelRewardClaimed';
 
         function loadProgress() {
-            const savedScore = localStorage.getItem('rybalkaScore');
+            const saved = localStorage.getItem('rybalkaScore');
+            if (saved) score = parseInt(saved);
             const savedEnergy = localStorage.getItem('rybalkaEnergy');
-            if (savedScore) score = parseInt(savedScore);
             if (savedEnergy) energy = parseInt(savedEnergy);
             updateScores();
-
-            if (localStorage.getItem(CHANNEL_REWARD_KEY) === 'true') {
-                // Бонус вже отримано
-            }
         }
 
         function saveProgress() {
@@ -139,14 +111,12 @@
             document.getElementById('profile-score').textContent = score;
             document.getElementById('energy').textContent = energy;
             document.getElementById('profile-energy').textContent = energy;
-            document.getElementById('user-id').textContent = userId;
         }
 
         const tapArea = document.getElementById('tap-area');
         tapArea.addEventListener('click', (e) => {
             if (energy <= 0) return alert("⚠️ Енергія закінчилася!");
-            score += 2;
-            energy -= 1;
+            score += 2; energy -= 1;
             updateScores();
             createFloatingText(e.clientX, e.clientY + window.scrollY, '+2');
             saveProgress();
@@ -154,21 +124,18 @@
 
         function createFloatingText(x, y, text) {
             const msg = document.createElement('div');
-            msg.className = 'message'; msg.textContent = text;
+            msg.style.position = 'absolute'; msg.style.fontSize = '26px'; msg.style.color = '#ffeb3b';
+            msg.style.fontWeight = 'bold'; msg.style.pointerEvents = 'none';
             msg.style.left = x + 'px'; msg.style.top = y + 'px';
+            msg.textContent = text;
             document.body.appendChild(msg);
             setTimeout(() => msg.remove(), 1800);
         }
 
         setInterval(() => {
-            if (energy < 100) {
-                energy = Math.min(100, energy + 1);
-                updateScores();
-                saveProgress();
-            }
+            if (energy < 100) { energy = Math.min(100, energy + 1); updateScores(); saveProgress(); }
         }, 3000);
 
-        // Перемикання вкладок
         function switchTab(n) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -176,39 +143,35 @@
             document.querySelectorAll('.tab')[n].classList.add('active');
         }
 
-        // === Канал + авто-бонус через 15 секунд ===
+        // Відкрити канал + авто-бонус через 15 сек
         function openChannelAndClaim() {
-            if (localStorage.getItem(CHANNEL_REWARD_KEY) === 'true') {
-                return alert('✅ Ти вже отримав бонус за підписку!');
-            }
+            if (localStorage.getItem(CHANNEL_REWARD_KEY) === 'true') return alert('✅ Бонус вже отримано!');
 
             const url = "https://t.me/vexoo_hub";
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.openLink(url);
-            } else {
-                window.open(url, '_blank');
-            }
+            window.open(url, '_blank');
 
-            alert("📢 Канал відкрито.\nЧерез 15 секунд бонус буде нараховано автоматично...");
+            alert("Канал відкрито.\nЧерез 15 секунд +498 РибКоінів буде нараховано автоматично...");
 
-            // Автоматична видача через 15 секунд
             setTimeout(() => {
                 if (localStorage.getItem(CHANNEL_REWARD_KEY) !== 'true') {
                     score += 498;
                     updateScores();
                     saveProgress();
                     localStorage.setItem(CHANNEL_REWARD_KEY, 'true');
-                    alert('🎉 +498 РибКоінів автоматично нараховано за підписку на @vexoo_hub!');
+                    alert('🎉 +498 РибКоінів нараховано за підписку!');
                 }
             }, 15000);
         }
 
-        // === Рефералка ===
+        // Реферальне посилання — ВИПРАВЛЕНО
         function copyReferralLink() {
             const refLink = `https://t.me/${botUsername}?start=ref${userId}`;
+            
             navigator.clipboard.writeText(refLink).then(() => {
-                alert(`✅ Посилання скопійовано!\n\n${refLink}`);
-            }).catch(() => alert(`Реферальне посилання:\n${refLink}`));
+                alert(`✅ Реферальне посилання скопійовано!\n\n${refLink}\n\nПоділись з другом.`);
+            }).catch(() => {
+                alert(`Скопіюй вручну:\nhttps://t.me/${botUsername}?start=ref${userId}`);
+            });
         }
 
         function activatePromo() {
@@ -217,35 +180,21 @@
             alert(`Промокод "${code}" активовано! (тест)`);
         }
 
-        // === Міні-гра Риболовля ===
+        // Проста риболовля
         function castRod() {
-            const bobber = document.getElementById('bobber');
-            const resultEl = document.getElementById('fishingResult');
-            
-            resultEl.textContent = "Закидаємо вудку...";
-            bobber.style.top = "20%";
-
+            const result = document.getElementById('fishingResult');
+            result.textContent = "Закидаємо...";
             setTimeout(() => {
-                const rand = Math.random();
-                if (rand < 0.4) {
-                    score += 25;
-                    resultEl.innerHTML = "🎉 <strong>Щука!</strong> +25 РибКоінів";
-                } else if (rand < 0.75) {
-                    score += 12;
-                    resultEl.innerHTML = "🐟 Карась! +12 РибКоінів";
-                } else {
-                    score += 5;
-                    resultEl.innerHTML = "🐠 Маленька рибка +5 РибКоінів";
-                }
+                const r = Math.random();
+                if (r < 0.35) { score += 30; result.innerHTML = "🎉 <b>Велика щука!</b> +30"; }
+                else if (r < 0.7) { score += 15; result.innerHTML = "🐟 Карась +15"; }
+                else { score += 8; result.innerHTML = "🐠 Маленька рибка +8"; }
                 updateScores();
                 saveProgress();
-                bobber.style.top = "50%";
-            }, 1800);
+            }, 1500);
         }
 
-        window.onload = () => {
-            loadProgress();
-        };
+        window.onload = loadProgress;
     </script>
 </body>
 </html>
