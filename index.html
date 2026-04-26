@@ -18,25 +18,32 @@
         .container {
             padding: 20px;
         }
-        #fish {
-            width: 240px;
-            height: 240px;
+        #tap-area {
+            width: 260px;
+            height: 260px;
             margin: 30px auto;
+            background: radial-gradient(circle, #ffeb3b, #ff9800);
+            border-radius: 50%;           /* Кругла тапалка */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: transform 0.08s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             user-select: none;
         }
-        #fish:active {
-            transform: scale(0.82);
+        #tap-area:active {
+            transform: scale(0.88);
         }
         .score {
-            font-size: 28px;
-            margin: 10px 0;
+            font-size: 32px;
+            margin: 15px 0;
             font-weight: bold;
         }
         .energy {
-            font-size: 22px;
-            margin: 15px 0;
+            font-size: 24px;
+            margin: 10px 0;
         }
         button {
             background: #ff9800;
@@ -50,7 +57,7 @@
         }
         .message {
             position: absolute;
-            font-size: 22px;
+            font-size: 26px;
             color: #ffeb3b;
             font-weight: bold;
             pointer-events: none;
@@ -59,7 +66,7 @@
         }
         @keyframes floatUp {
             0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-120px); }
+            100% { opacity: 0; transform: translateY(-140px); }
         }
     </style>
 </head>
@@ -70,8 +77,8 @@
         <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
         <div class="energy">Енергія: <span id="energy">100</span>/100</div>
         
-        <!-- Нова нормальна картинка риби -->
-        <img id="fish" src="https://i.imgur.com/8vN5v3L.png" alt="Риба">
+        <!-- Кругла тапалка з рибою -->
+        <div id="tap-area">🐠</div>
         
         <button onclick="claimDaily()">Щоденний бонус (+500)</button>
         <button onclick="showReferrals()">Запросити друга (+500)</button>
@@ -83,21 +90,23 @@
 
         const scoreEl = document.getElementById('score');
         const energyEl = document.getElementById('energy');
-        const fish = document.getElementById('fish');
+        const tapArea = document.getElementById('tap-area');
 
-        fish.addEventListener('click', (e) => {
+        // 1 тап = 2 РибКоіни
+        tapArea.addEventListener('click', (e) => {
             if (energy <= 0) {
-                alert("Енергія закінчилася! Зачекай трохи 🎣");
+                alert("⚠️ Енергія закінчилася! Зачекай трохи 🎣");
                 return;
             }
 
-            score += 10;
+            score += 2;      // ← Змінили на 2 FC за тап
             energy -= 1;
             
             scoreEl.textContent = score;
             energyEl.textContent = energy;
 
-            createFloatingText(e.clientX, e.clientY + window.scrollY, '+10');
+            // Анімація +2
+            createFloatingText(e.clientX, e.clientY + window.scrollY, '+2');
         });
 
         function createFloatingText(x, y, text) {
@@ -110,7 +119,7 @@
             setTimeout(() => msg.remove(), 1800);
         }
 
-        // Відновлення енергії кожні 3 секунди
+        // Відновлення енергії кожні 3 секунди (+1)
         setInterval(() => {
             if (energy < 100) {
                 energy = Math.min(100, energy + 1);
@@ -121,21 +130,19 @@
         function claimDaily() {
             score += 500;
             scoreEl.textContent = score;
-            alert('✅ Ти отримав щоденний бонус +500 РибКоінів!');
+            alert('✅ +500 РибКоінів за щоденний вхід!');
         }
 
         function showReferrals() {
             const refCode = Math.floor(10000 + Math.random() * 90000);
-            alert(`🔗 Твоє реферальне посилання:\nhttps://t.me/твій_бот?start=ref${refCode}\n\nЗапроси друга — отримай +500 РибКоінів!`);
+            alert(`🔗 Твоє реферальне посилання:\nhttps://t.me/твій_бот?start=ref${refCode}\n\nЗапроси друга — +500 РибКоінів!`);
             score += 500;
             scoreEl.textContent = score;
         }
 
-        // Привітання при першому запуску
+        // Привітання
         window.onload = () => {
-            if (score === 0) {
-                alert('🎣 Ласкаво просимо на рибалку!\n\nТапай по рибі, щоб ловити улов.\nЕнергія відновлюється автоматично.');
-            }
+            alert('🎣 Ласкаво просимо на рибалку!\n\nТапай по круглій рибі 🐠\n1 тап = 2 РибКоіни');
         };
     </script>
 </body>
