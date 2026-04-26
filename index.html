@@ -15,42 +15,66 @@
             height: 100vh;
             overflow: hidden;
         }
-        .container {
-            padding: 20px;
+        .header {
+            padding: 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .score {
+            font-size: 32px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .energy {
+            font-size: 24px;
+            margin: 5px 0 20px 0;
         }
         #tap-area {
             width: 260px;
             height: 260px;
-            margin: 30px auto;
+            margin: 20px auto;
             background: radial-gradient(circle, #ffeb3b, #ff9800);
-            border-radius: 50%;           /* Кругла тапалка */
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 120px;
+            font-size: 130px;
             cursor: pointer;
             transition: transform 0.08s ease;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             user-select: none;
         }
         #tap-area:active {
-            transform: scale(0.88);
+            transform: scale(0.85);
         }
-        .score {
-            font-size: 32px;
-            margin: 15px 0;
+        .tabs {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 0;
+        }
+        .tab {
+            flex: 1;
+            padding: 15px;
+            font-size: 18px;
             font-weight: bold;
+            cursor: pointer;
         }
-        .energy {
-            font-size: 24px;
-            margin: 10px 0;
+        .tab.active {
+            background: #ff9800;
+            color: white;
+            border-radius: 10px;
+            margin: 0 5px;
         }
         button {
             background: #ff9800;
             color: white;
             border: none;
             padding: 14px 28px;
-            margin: 10px 5px;
+            margin: 15px 5px;
             border-radius: 12px;
             font-size: 18px;
             font-weight: bold;
@@ -68,20 +92,27 @@
             0% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-140px); }
         }
+        .content {
+            padding-bottom: 80px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎣 Рибалка Віті</h1>
-        
+    <div class="header">🎣 Рибалка Віті</div>
+    
+    <div class="content">
         <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
         <div class="energy">Енергія: <span id="energy">100</span>/100</div>
         
-        <!-- Кругла тапалка з рибою -->
+        <!-- Кругла тапалка -->
         <div id="tap-area">🐠</div>
-        
-        <button onclick="claimDaily()">Щоденний бонус (+500)</button>
-        <button onclick="showReferrals()">Запросити друга (+500)</button>
+    </div>
+
+    <!-- Вкладки внизу -->
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab(0)">Тапати</div>
+        <div class="tab" onclick="switchTab(1)">Profile</div>
+        <div class="tab" onclick="switchTab(2)">Rewards</div>
     </div>
 
     <script>
@@ -99,13 +130,12 @@
                 return;
             }
 
-            score += 2;      // ← Змінили на 2 FC за тап
+            score += 2;
             energy -= 1;
             
             scoreEl.textContent = score;
             energyEl.textContent = energy;
 
-            // Анімація +2
             createFloatingText(e.clientX, e.clientY + window.scrollY, '+2');
         });
 
@@ -119,7 +149,7 @@
             setTimeout(() => msg.remove(), 1800);
         }
 
-        // Відновлення енергії кожні 3 секунди (+1)
+        // Відновлення енергії
         setInterval(() => {
             if (energy < 100) {
                 energy = Math.min(100, energy + 1);
@@ -127,22 +157,20 @@
             }
         }, 3000);
 
-        function claimDaily() {
-            score += 500;
-            scoreEl.textContent = score;
-            alert('✅ +500 РибКоінів за щоденний вхід!');
+        // Функція перемикання вкладок (поки що тільки тапалка працює)
+        function switchTab(tab) {
+            if (tab === 0) {
+                alert("🎣 Ти вже на вкладці Тапати");
+            } else if (tab === 1) {
+                alert("👤 Profile\n\nТвій улов: " + score + " РибКоінів\n\nТут пізніше буде статистика, рівень рибалки тощо.");
+            } else if (tab === 2) {
+                alert("🏆 Rewards\n\nТут будуть завдання, бонуси та нагороди.\n\nПоки в розробці.");
+            }
         }
 
-        function showReferrals() {
-            const refCode = Math.floor(10000 + Math.random() * 90000);
-            alert(`🔗 Твоє реферальне посилання:\nhttps://t.me/твій_бот?start=ref${refCode}\n\nЗапроси друга — +500 РибКоінів!`);
-            score += 500;
-            scoreEl.textContent = score;
-        }
-
-        // Привітання
+        // Привітання тільки один раз при першому запуску (без "Ласкаво просимо")
         window.onload = () => {
-            alert('🎣 Ласкаво просимо на рибалку!\n\nТапай по круглій рибі 🐠\n1 тап = 2 РибКоіни');
+            // Можна прибрати зовсім, якщо не потрібно
         };
     </script>
 </body>
