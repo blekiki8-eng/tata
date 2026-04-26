@@ -16,9 +16,10 @@
             overflow: hidden;
         }
         .header {
-            padding: 15px;
-            font-size: 24px;
+            padding: 15px 0;
+            font-size: 26px;
             font-weight: bold;
+            background: rgba(0,0,0,0.3);
         }
         .score {
             font-size: 32px;
@@ -32,7 +33,7 @@
         #tap-area {
             width: 260px;
             height: 260px;
-            margin: 20px auto;
+            margin: 30px auto;
             background: radial-gradient(circle, #ffeb3b, #ff9800);
             border-radius: 50%;
             display: flex;
@@ -47,28 +48,42 @@
         #tap-area:active {
             transform: scale(0.85);
         }
+
+        /* Вкладки */
         .tabs {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             display: flex;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 0;
+            z-index: 100;
         }
         .tab {
             flex: 1;
-            padding: 15px;
+            padding: 16px 10px;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
         }
         .tab.active {
             background: #ff9800;
-            color: white;
+            color: black;
             border-radius: 10px;
-            margin: 0 5px;
+            margin: 0 6px;
         }
+
+        /* Контент вкладок */
+        .screen {
+            display: none;
+            padding: 20px;
+            padding-bottom: 90px;
+        }
+        .screen.active {
+            display: block;
+        }
+
         button {
             background: #ff9800;
             color: white;
@@ -92,20 +107,34 @@
             0% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-140px); }
         }
-        .content {
-            padding-bottom: 80px;
-        }
     </style>
 </head>
 <body>
+
     <div class="header">🎣 Рибалка Віті</div>
-    
-    <div class="content">
+
+    <!-- Екран Тапати -->
+    <div id="screen-tap" class="screen active">
         <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
         <div class="energy">Енергія: <span id="energy">100</span>/100</div>
-        
-        <!-- Кругла тапалка -->
         <div id="tap-area">🐠</div>
+    </div>
+
+    <!-- Екран Profile -->
+    <div id="screen-profile" class="screen">
+        <h2>👤 Профіль</h2>
+        <p>Улов: <strong><span id="profile-score">0</span></strong> РибКоінів</p>
+        <p>Енергія: <strong><span id="profile-energy">100</span></strong>/100</p>
+        <p>Рівень рибалки: <strong>Початківець</strong></p>
+        <button onclick="alert('Поки що нічого немає. Буде пізніше.')">Статистика</button>
+    </div>
+
+    <!-- Екран Rewards -->
+    <div id="screen-rewards" class="screen">
+        <h2>🏆 Нагороди</h2>
+        <p>Тут будуть завдання та бонуси</p>
+        <button onclick="alert('Щоденний бонус тимчасово вимкнено')">Щоденний бонус</button>
+        <button onclick="alert('Реферали скоро з\'являться')">Запросити друга</button>
     </div>
 
     <!-- Вкладки внизу -->
@@ -119,11 +148,32 @@
         let score = 0;
         let energy = 100;
 
-        const scoreEl = document.getElementById('score');
-        const energyEl = document.getElementById('energy');
+        // Завантаження збереженого балансу
+        function loadProgress() {
+            const savedScore = localStorage.getItem('rybalkaScore');
+            const savedEnergy = localStorage.getItem('rybalkaEnergy');
+            
+            if (savedScore) score = parseInt(savedScore);
+            if (savedEnergy) energy = parseInt(savedEnergy);
+            
+            updateAllScores();
+        }
+
+        // Збереження прогресу
+        function saveProgress() {
+            localStorage.setItem('rybalkaScore', score);
+            localStorage.setItem('rybalkaEnergy', energy);
+        }
+
+        function updateAllScores() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('profile-score').textContent = score;
+            document.getElementById('energy').textContent = energy;
+            document.getElementById('profile-energy').textContent = energy;
+        }
+
         const tapArea = document.getElementById('tap-area');
 
-        // 1 тап = 2 РибКоіни
         tapArea.addEventListener('click', (e) => {
             if (energy <= 0) {
                 alert("⚠️ Енергія закінчилася! Зачекай трохи 🎣");
@@ -132,11 +182,10 @@
 
             score += 2;
             energy -= 1;
-            
-            scoreEl.textContent = score;
-            energyEl.textContent = energy;
 
+            updateAllScores();
             createFloatingText(e.clientX, e.clientY + window.scrollY, '+2');
+            saveProgress();
         });
 
         function createFloatingText(x, y, text) {
@@ -153,24 +202,30 @@
         setInterval(() => {
             if (energy < 100) {
                 energy = Math.min(100, energy + 1);
-                energyEl.textContent = energy;
+                updateAllScores();
+                saveProgress();
             }
         }, 3000);
 
-        // Функція перемикання вкладок (поки що тільки тапалка працює)
-        function switchTab(tab) {
-            if (tab === 0) {
-                alert("🎣 Ти вже на вкладці Тапати");
-            } else if (tab === 1) {
-                alert("👤 Profile\n\nТвій улов: " + score + " РибКоінів\n\nТут пізніше буде статистика, рівень рибалки тощо.");
-            } else if (tab === 2) {
-                alert("🏆 Rewards\n\nТут будуть завдання, бонуси та нагороди.\n\nПоки в розробці.");
+        // Перемикання вкладок
+        function switchTab(tabIndex) {
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            
+            if (tabIndex === 0) {
+                document.getElementById('screen-tap').classList.add('active');
+            } else if (tabIndex === 1) {
+                document.getElementById('screen-profile').classList.add('active');
+            } else if (tabIndex === 2) {
+                document.getElementById('screen-rewards').classList.add('active');
             }
+            
+            document.querySelectorAll('.tab')[tabIndex].classList.add('active');
         }
 
-        // Привітання тільки один раз при першому запуску (без "Ласкаво просимо")
+        // Ініціалізація
         window.onload = () => {
-            // Можна прибрати зовсім, якщо не потрібно
+            loadProgress();
         };
     </script>
 </body>
