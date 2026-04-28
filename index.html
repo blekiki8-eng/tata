@@ -18,21 +18,22 @@
         .energy { font-size: 24px; margin-bottom: 25px; }
 
         #tap-area {
-            width: 265px; height: 265px; margin: 30px auto;
+            width: 265px; height: 265px; margin: 25px auto;
             background: radial-gradient(circle, #ffeb3b, #ff9800);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 140px; cursor: pointer;
             box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
         }
-        #tap-area:active { transform: scale(0.85); }
+        #tap-area:active { transform: scale(0.82); }
 
         .donate-btn {
             background: linear-gradient(#ff5722, #f44336);
             color: white;
             border: none;
             padding: 16px 32px;
-            margin: 20px auto;
+            margin: 15px auto;
             border-radius: 50px;
             font-size: 20px;
             font-weight: bold;
@@ -42,26 +43,36 @@
         .tabs {
             position: fixed; bottom: 0; left: 0; right: 0;
             display: flex; background: rgba(0,0,0,0.85);
-            padding: 10px 5px;
+            padding: 10px 5px; z-index: 100;
         }
         .tab {
-            flex: 1; padding: 14px 6px; font-size: 15px; font-weight: bold; cursor: pointer;
+            flex: 1; padding: 14px 6px; font-size: 15.5px; font-weight: bold; cursor: pointer;
         }
-        .tab.active { background: #ff9800; color: black; border-radius: 12px; margin: 0 4px; }
+        .tab.active {
+            background: #ff9800; color: black; border-radius: 12px; margin: 0 4px;
+        }
 
-        .screen { display: none; padding: 20px; padding-bottom: 100px; height: calc(100vh - 80px); overflow-y: auto; }
+        .screen {
+            display: none; 
+            padding: 20px 15px; 
+            padding-bottom: 110px;
+            height: calc(100vh - 82px); 
+            overflow-y: auto;
+        }
         .screen.active { display: block; }
     </style>
 </head>
 <body>
 
+    <!-- Головний екран -->
     <div id="screen-tap" class="screen active">
         <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
         <div class="energy">Енергія: <span id="energy">100</span>/100</div>
         <div id="tap-area">🐠</div>
-        <button class="donate-btn" onclick="alert('💰 Donate відкрито в чаті бота')">💰 Donate</button>
+        <button class="donate-btn" onclick="alert('💰 Перейдіть в чат з ботом і натисніть Donate')">💰 Donate</button>
     </div>
 
+    <!-- Нижні вкладки -->
     <div class="tabs">
         <div class="tab active" onclick="alert('Тапати')">Тапати</div>
         <div class="tab" onclick="alert('Profile')">Profile</div>
@@ -79,12 +90,12 @@
                 energy -= 1;
                 document.getElementById('score').textContent = score;
                 document.getElementById('energy').textContent = energy;
+            } else {
+                alert("Енергія закінчилася! Зачекай.");
             }
         });
 
-        window.onload = () => {
-            console.log("Mini App завантажено успішно");
-        };
+        console.log("Рибалка Віті Mini App завантажено успішно");
     </script>
 </body>
 </html>
