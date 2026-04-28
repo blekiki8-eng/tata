@@ -39,7 +39,6 @@
             font-weight: bold;
             width: 85%;
             max-width: 320px;
-            box-shadow: 0 6px 20px rgba(255, 87, 34, 0.5);
         }
 
         .tabs {
@@ -77,13 +76,11 @@
 </head>
 <body>
 
-    <!-- Тапати (головний екран) -->
+    <!-- Тапати -->
     <div id="screen-tap" class="screen active">
         <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
         <div class="energy">Енергія: <span id="energy">100</span>/100</div>
-        
         <div id="tap-area">🐠</div>
-        
         <button class="donate-btn" onclick="switchTab(4)">💰 Donate</button>
     </div>
 
@@ -116,16 +113,14 @@
         <p id="fishingResult" style="margin-top:25px; font-size:19px; min-height:60px;"></p>
     </div>
 
-    <!-- Donate -->
+    <!-- Donate (в грі) -->
     <div id="screen-donate" class="screen">
         <h2>💰 Поповнення</h2>
         <div style="background:rgba(255,200,0,0.25); padding:30px 20px; border-radius:18px; max-width:340px; margin:25px auto;">
             <p><strong>Вітаю!</strong></p>
-            <p>Виберіть банк для поповнення донат валюти:</p>
-            
+            <p>Виберіть банк для поповнення:</p>
             <button onclick="showBank('abank')">🏦 Абанк</button>
             <button onclick="showBank('pumb')">🏦 ПУМБ</button>
-            
             <p style="margin-top:25px; font-size:14.5px; color:#ffd080;">
                 ⚠️ Після оплати обов’язково скиньте квитанцію в цей чат!
             </p>
@@ -150,9 +145,8 @@
             document.getElementById('energy').textContent = energy;
         }
 
-        // Тап по рибі
         document.getElementById('tap-area').addEventListener('click', () => {
-            if (energy <= 0) return alert("⚠️ Енергія закінчилася! Зачекай.");
+            if (energy <= 0) return alert("⚠️ Енергія закінчилася!");
             score += 2;
             energy -= 1;
             updateScores();
@@ -172,17 +166,14 @@
             updateScores();
         }
 
-        // Перемикання вкладок
         function switchTab(n) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             
-            const screens = ['screen-tap', 'screen-profile', 'screen-rewards', 'screen-fishing', 'screen-donate'];
+            const screens = ['screen-tap','screen-profile','screen-rewards','screen-fishing','screen-donate'];
             document.getElementById(screens[n]).classList.add('active');
             
-            if (n < 4) {
-                document.querySelectorAll('.tab')[n].classList.add('active');
-            }
+            if (n < 4) document.querySelectorAll('.tab')[n].classList.add('active');
         }
 
         function showBank(bank) {
@@ -193,7 +184,6 @@
             }
         }
 
-        // Риболовля
         function castRod() {
             const bobber = document.getElementById('bobber');
             const result = document.getElementById('fishingResult');
