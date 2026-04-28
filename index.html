@@ -14,112 +14,168 @@
             height: 100vh;
             overflow: hidden;
         }
-        .score { font-size: 32px; margin: 12px 0; font-weight: bold; }
-        .energy { font-size: 23px; margin-bottom: 25px; }
+        .score { 
+            font-size: 34px; 
+            margin: 15px 0 8px 0; 
+            font-weight: bold; 
+        }
+        .energy { 
+            font-size: 24px; 
+            margin-bottom: 25px; 
+        }
 
         #tap-area {
-            width: 260px; height: 260px; margin: 25px auto;
+            width: 260px; 
+            height: 260px; 
+            margin: 20px auto;
             background: radial-gradient(circle, #ffeb3b, #ff9800);
             border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 135px; cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: transform 0.1s;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-size: 135px; 
+            cursor: pointer;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.5);
+            transition: transform 0.1s ease;
         }
-        #tap-area:active { transform: scale(0.82); }
+        #tap-area:active { 
+            transform: scale(0.82); 
+        }
+
+        .donate-btn {
+            background: linear-gradient(#ff5722, #f44336);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            margin: 15px auto;
+            border-radius: 14px;
+            font-size: 19px;
+            font-weight: bold;
+            width: 85%;
+            max-width: 320px;
+            box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
+        }
 
         .tabs {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            display: flex; background: rgba(0,0,0,0.85);
-            padding: 10px 5px; z-index: 100;
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0;
+            display: flex; 
+            background: rgba(0,0,0,0.85);
+            padding: 10px 5px; 
+            z-index: 100;
         }
         .tab {
-            flex: 1; padding: 14px 5px; font-size: 15px; font-weight: bold; cursor: pointer;
+            flex: 1; 
+            padding: 14px 6px; 
+            font-size: 15.5px; 
+            font-weight: bold; 
+            cursor: pointer;
         }
         .tab.active {
-            background: #ff9800; color: black; border-radius: 12px; margin: 0 4px;
+            background: #ff9800; 
+            color: black; 
+            border-radius: 12px; 
+            margin: 0 4px;
         }
 
         .screen {
-            display: none; padding: 20px 15px; padding-bottom: 110px;
-            height: calc(100vh - 80px); overflow-y: auto;
+            display: none; 
+            padding: 20px 15px; 
+            padding-bottom: 110px;
+            height: calc(100vh - 82px); 
+            overflow-y: auto;
         }
-        .screen.active { display: block; }
+        .screen.active { 
+            display: block; 
+        }
 
-        button {
-            background: #ff9800; color: white; border: none;
-            padding: 15px 25px; margin: 12px 0; border-radius: 12px;
-            font-size: 17px; font-weight: bold; width: 92%;
+        .fishing-area {
+            width: 290px; 
+            height: 290px; 
+            margin: 30px auto;
+            background: #0d47a1; 
+            border-radius: 50%;
+            position: relative; 
+            overflow: hidden;
+            border: 8px solid #ffeb3b;
         }
-        .donate-box {
-            background: rgba(255, 200, 0, 0.15);
-            padding: 25px 20px;
-            border-radius: 16px;
-            margin: 20px auto;
-            max-width: 340px;
+        .bobber {
+            position: absolute;
+            font-size: 45px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 4.8s linear;
         }
     </style>
 </head>
 <body>
 
-    <!-- Тапати -->
+    <!-- Головний екран - Тапати -->
     <div id="screen-tap" class="screen active">
         <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
         <div class="energy">Енергія: <span id="energy">100</span>/100</div>
+        
         <div id="tap-area">🐠</div>
+        
+        <!-- Кнопка Donate під тапалкою -->
+        <button class="donate-btn" onclick="switchTab(4)">💰 Donate</button>
     </div>
 
     <!-- Profile -->
     <div id="screen-profile" class="screen">
         <h2>👤 Профіль</h2>
-        <div class="donate-box">
+        <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:15px; max-width:340px; margin:20px auto;">
             <p><strong>User ID:</strong> <span id="user-id">8694292932</span></p>
             <p><strong>Улов:</strong> <span id="profile-score">0</span> РибКоінів</p>
             <p><strong>Енергія:</strong> <span id="profile-energy">100</span>/100</p>
+            <p><strong>Рівень:</strong> Початківець 🎣</p>
         </div>
     </div>
 
     <!-- Rewards -->
     <div id="screen-rewards" class="screen">
         <h2>🏆 Нагороди</h2>
-        <!-- Тут можна залишити попередні завдання -->
-        <p>Тут будуть завдання</p>
+        <p style="margin-top:30px;">Тут будуть завдання та бонуси</p>
     </div>
 
     <!-- Fishing -->
     <div id="screen-fishing" class="screen">
         <h2>🎣 Риболовля</h2>
-        <p>Закинь вудку і лови рибу!</p>
+        <div class="fishing-area" id="fishingArea">
+            <div class="bobber" id="bobber">🎣</div>
+        </div>
         <button onclick="castRod()">Закинути вудку</button>
-        <p id="fishingResult" style="margin-top:20px; min-height:30px;"></p>
+        <p id="fishingResult" style="margin-top:25px; font-size:19px; min-height:60px;"></p>
     </div>
 
-    <!-- DONATE -->
+    <!-- Donate -->
     <div id="screen-donate" class="screen">
-        <h2>💰 Donate</h2>
-        <div class="donate-box">
+        <h2>💰 Поповнення</h2>
+        <div style="background:rgba(255,200,0,0.2); padding:25px; border-radius:16px; max-width:340px; margin:25px auto;">
             <p><strong>Вітаю!</strong></p>
             <p>При поповненні донат валюти виберіть банк.</p>
-            <p style="color:#ffeb3b; margin:15px 0;">
-                Ви перекидаєте кошти, щоб отримати донатну валюту на баланс.
+            <p style="color:#ffeb3b; margin:15px 0 20px 0;">
+                Ви перекидаєте кошти для отримання донатної валюти.
             </p>
             
             <button onclick="showBank('abank')">🏦 Абанк</button>
             <button onclick="showBank('pumb')">🏦 ПУМБ</button>
-
-            <p style="margin-top:25px; font-size:14px; color:#ffd080;">
+            
+            <p style="margin-top:25px; font-size:14.5px; color:#ffd080;">
                 ⚠️ Після оплати обов’язково скиньте квитанцію в цей чат!
             </p>
         </div>
     </div>
 
-    <!-- Вкладки внизу -->
+    <!-- Нижні вкладки -->
     <div class="tabs">
         <div class="tab active" onclick="switchTab(0)">Тапати</div>
         <div class="tab" onclick="switchTab(1)">Profile</div>
         <div class="tab" onclick="switchTab(2)">Rewards</div>
         <div class="tab" onclick="switchTab(3)">Fishing</div>
-        <div class="tab" onclick="switchTab(4)">💰 Donate</div>
     </div>
 
     <script>
@@ -133,15 +189,14 @@
         }
 
         // Тап по рибі
-        document.getElementById('tap-area').addEventListener('click', (e) => {
-            if (energy <= 0) return alert("Енергія закінчилася! Зачекай.");
+        document.getElementById('tap-area').addEventListener('click', () => {
+            if (energy <= 0) return alert("⚠️ Енергія закінчилася! Зачекай трохи.");
             score += 2;
             energy -= 1;
             updateScores();
             saveProgress();
         });
 
-        // Збереження прогресу
         function saveProgress() {
             localStorage.setItem('rybalkaScore', score);
             localStorage.setItem('rybalkaEnergy', energy);
@@ -155,43 +210,64 @@
             updateScores();
         }
 
-        // Перемикання вкладок
+        // Перемикання екранів
         function switchTab(n) {
-            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             
-            document.getElementById(['screen-tap', 'screen-profile', 'screen-rewards', 'screen-fishing', 'screen-donate'][n]).classList.add('active');
-            document.querySelectorAll('.tab')[n].classList.add('active');
+            const screens = ['screen-tap', 'screen-profile', 'screen-rewards', 'screen-fishing', 'screen-donate'];
+            document.getElementById(screens[n]).classList.add('active');
+            
+            if (n < 4) {
+                document.querySelectorAll('.tab')[n].classList.add('active');
+            }
         }
 
         // Показ банків
         function showBank(bank) {
             if (bank === 'abank') {
-                alert(`🏦 Абанк\n\nНомер карти:\n4400 0055 5011 1519\n\nПісля оплати обов’язково скинь квитанцію в чат!`);
-            } else if (bank === 'pumb') {
-                alert(`🏦 ПУМБ\n\nНомер карти:\n5355 2800 2890 2177\n\nПісля оплати обов’язково скинь квитанцію в цей чат!`);
+                alert(`🏦 Абанк\n\nНомер карти:\n4400 0055 5011 1519\n\nПісля оплати скинь квитанцію в чат!`);
+            } else {
+                alert(`🏦 ПУМБ\n\nНомер карти:\n5355 2800 2890 2177\n\nПісля оплати скинь квитанцію в чат!`);
             }
         }
 
-        // Проста риболовля
+        // Покращена риболовля
         function castRod() {
+            const bobber = document.getElementById('bobber');
             const result = document.getElementById('fishingResult');
-            result.textContent = "Закидаємо...";
+            
+            result.textContent = "Закидаємо вудку...";
+            bobber.style.transition = "transform 4.8s linear";
+            bobber.style.transform = "rotate(720deg)";
+
             setTimeout(() => {
                 const rand = Math.random();
-                if (rand < 0.4) score += 30;
-                else if (rand < 0.75) score += 15;
-                else score += 8;
+                
+                if (rand < 0.5) {
+                    // Мусор
+                    score = Math.max(0, score - 15);
+                    result.innerHTML = "🗑 <strong>Мусор!</strong><br>-15 РибКоінів";
+                } else {
+                    // Карась
+                    score += 25;
+                    result.innerHTML = "🐟 <strong>Карась!</strong><br>+25 РибКоінів";
+                }
+
                 updateScores();
                 saveProgress();
-                result.textContent = "Рибу зловлено!";
-            }, 1500);
+
+                // Скидання анімації
+                bobber.style.transition = "none";
+                bobber.style.transform = "rotate(0deg)";
+                setTimeout(() => {
+                    bobber.style.transition = "transform 4.8s linear";
+                }, 100);
+            }, 4800);
         }
 
         // Ініціалізація
-        window.onload = () => {
-            loadProgress();
-        };
+        window.onload = loadProgress;
     </script>
 </body>
 </html>
