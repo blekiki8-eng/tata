@@ -14,23 +14,16 @@
             height: 100vh;
             overflow: hidden;
         }
-
-        .score { font-size: 35px; margin: 15px 0 8px 0; font-weight: bold; }
-        .energy { font-size: 24px; margin-bottom: 20px; }
+        .score { font-size: 35px; margin: 20px 0 10px 0; font-weight: bold; }
+        .energy { font-size: 24px; margin-bottom: 30px; }
 
         #tap-area {
-            width: 270px; 
-            height: 270px; 
-            margin: 20px auto;
+            width: 270px; height: 270px; margin: 30px auto;
             background: radial-gradient(circle, #ffeb3b, #ff9800);
             border-radius: 50%;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            font-size: 145px; 
-            cursor: pointer;
-            box-shadow: 0 15px 45px rgba(0,0,0,0.5);
-            transition: transform 0.1s;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 150px; cursor: pointer;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
         }
         #tap-area:active { transform: scale(0.85); }
 
@@ -39,166 +32,37 @@
             color: white;
             border: none;
             padding: 16px 32px;
-            margin: 15px auto 30px auto;
+            margin: 20px auto;
             border-radius: 50px;
             font-size: 20px;
             font-weight: bold;
             width: 85%;
-            max-width: 320px;
         }
-
-        .tabs {
-            position: fixed; 
-            bottom: 0; left: 0; right: 0;
-            display: flex; 
-            background: rgba(0,0,0,0.85);
-            padding: 10px 5px; 
-            z-index: 100;
-        }
-        .tab {
-            flex: 1; 
-            padding: 15px 8px; 
-            font-size: 16px; 
-            font-weight: bold; 
-            cursor: pointer;
-        }
-        .tab.active {
-            background: #ff9800; 
-            color: black; 
-            border-radius: 12px; 
-            margin: 0 4px;
-        }
-
-        .screen {
-            display: none; 
-            padding: 20px 15px; 
-            padding-bottom: 100px;
-            height: calc(100vh - 80px); 
-            overflow-y: auto;
-        }
-        .screen.active { display: block; }
     </style>
 </head>
 <body>
 
-    <!-- Тапалка (головний екран) -->
-    <div id="screen-tap" class="screen active">
-        <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
-        <div class="energy">Енергія: <span id="energy">100</span>/100</div>
-        <div id="tap-area">🐠</div>
-        <button class="donate-btn" onclick="switchTab(3)">💰 Donate</button>
-    </div>
-
-    <!-- Profile -->
-    <div id="screen-profile" class="screen">
-        <h2>👤 Профіль</h2>
-        <div style="background:rgba(255,255,255,0.12); padding:25px; border-radius:16px; max-width:340px; margin:30px auto;">
-            <p><strong>User ID:</strong> <span id="user-id">8694292932</span></p>
-            <p><strong>Улов:</strong> <span id="profile-score">0</span> РибКоінів</p>
-            <p><strong>Енергія:</strong> <span id="profile-energy">100</span>/100</p>
-            <p><strong>Рівень:</strong> Початківець 🎣</p>
-        </div>
-    </div>
-
-    <!-- Fishing -->
-    <div id="screen-fishing" class="screen">
-        <h2>🎣 Риболовля</h2>
-        <p>Закинь вудку і лови рибу!</p>
-        <div style="width:290px;height:290px;margin:30px auto;background:#0d47a1;border-radius:50%;position:relative;border:8px solid #ffeb3b;">
-            <div id="bobber" style="position:absolute;font-size:48px;top:50%;left:50%;transform:translate(-50%,-50%);transition:transform 4.8s linear;">🎣</div>
-        </div>
-        <button onclick="castRod()">Закинути вудку</button>
-        <p id="fishingResult" style="margin-top:25px;font-size:19px;min-height:60px;"></p>
-    </div>
-
-    <!-- Donate -->
-    <div id="screen-donate" class="screen">
-        <h2>💰 Поповнення</h2>
-        <div style="background:rgba(255,200,0,0.25);padding:30px 20px;border-radius:18px;max-width:340px;margin:30px auto;">
-            <p><strong>Виберіть банк:</strong></p>
-            <button onclick="showBank('abank')">🏦 Абанк</button>
-            <button onclick="showBank('pumb')">🏦 ПУМБ</button>
-            <p style="margin-top:25px; font-size:14px; color:#ffeb3b;">
-                Після оплати скиньте квитанцію в чат з ботом!
-            </p>
-        </div>
-    </div>
-
-    <!-- Нижні вкладки -->
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab(0)">Тапати</div>
-        <div class="tab" onclick="switchTab(1)">Profile</div>
-        <div class="tab" onclick="switchTab(2)">Fishing</div>
-        <div class="tab" onclick="switchTab(3)">Donate</div>
-    </div>
+    <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
+    <div class="energy">Енергія: <span id="energy">100</span>/100</div>
+    
+    <div id="tap-area">🐠</div>
+    
+    <button class="donate-btn" onclick="alert('💰 Donate відкрито в чаті з ботом')">💰 Donate</button>
 
     <script>
         let score = 0;
         let energy = 100;
 
-        function updateScores() {
-            document.getElementById('score').textContent = score;
-            document.getElementById('profile-score').textContent = score;
-            document.getElementById('energy').textContent = energy;
-        }
-
-        // Тап по рибі
         document.getElementById('tap-area').addEventListener('click', () => {
-            if (energy <= 0) return alert("Енергія закінчилася!");
-            score += 2;
-            energy -= 1;
-            updateScores();
-            localStorage.setItem('rybalkaScore', score);
-            localStorage.setItem('rybalkaEnergy', energy);
+            if (energy > 0) {
+                score += 2;
+                energy -= 1;
+                document.getElementById('score').textContent = score;
+                document.getElementById('energy').textContent = energy;
+            }
         });
 
-        // Перемикання вкладок
-        function switchTab(n) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            
-            const screens = ['screen-tap', 'screen-profile', 'screen-fishing', 'screen-donate'];
-            document.getElementById(screens[n]).classList.add('active');
-            document.querySelectorAll('.tab')[n].classList.add('active');
-        }
-
-        function showBank(bank) {
-            if (bank === 'abank') {
-                alert(`🏦 Абанк\n\n4400 0055 5011 1519\n\nПісля оплати скинь квитанцію в чат!`);
-            } else {
-                alert(`🏦 ПУМБ\n\n5355 2800 2890 2177\n\nПісля оплати скинь квитанцію в чат!`);
-            }
-        }
-
-        // Риболовля
-        function castRod() {
-            const bobber = document.getElementById('bobber');
-            const result = document.getElementById('fishingResult');
-            result.textContent = "Закидаємо...";
-            bobber.style.transform = "rotate(720deg)";
-
-            setTimeout(() => {
-                if (Math.random() < 0.5) {
-                    score = Math.max(0, score - 15);
-                    result.innerHTML = "🗑 Мусор!<br>-15";
-                } else {
-                    score += 25;
-                    result.innerHTML = "🐟 Карась!<br>+25";
-                }
-                updateScores();
-                localStorage.setItem('rybalkaScore', score);
-                bobber.style.transform = "rotate(0deg)";
-            }, 4500);
-        }
-
-        // Завантаження
-        window.onload = () => {
-            const savedScore = localStorage.getItem('rybalkaScore');
-            const savedEnergy = localStorage.getItem('rybalkaEnergy');
-            if (savedScore) score = parseInt(savedScore);
-            if (savedEnergy) energy = parseInt(savedEnergy);
-            updateScores();
-        };
+        console.log("✅ Рибалка Віті Mini App успішно завантажено");
     </script>
 </body>
 </html>
