@@ -11,9 +11,8 @@ import logging
 TOKEN = "8694292932:AAHukPD-1zBf_dsFdSQCE-iam7CvvENmjJ8"
 WEB_APP_URL = "https://tata-production-5086.up.railway.app"
 
-# Курс
-DIAMOND_TO_USD = 4.45
-USD_TO_UAH = 44.50
+# Курс: 1 💎 = 4.45 грн
+RATE = 4.45
 
 bot = Bot(
     token=TOKEN,
@@ -30,8 +29,8 @@ def get_start_keyboard():
     ])
     return keyboard
 
-def get_bank_keyboard(diamonds: int):
-    amount_uah = round(diamonds * DIAMOND_TO_USD * USD_TO_UAH, 2)
+def get_bank_keyboard(diamonds: float):
+    amount_uah = round(diamonds * RATE, 2)
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🏦 Абанк", callback_data=f"bank_abank_{diamonds}")],
         [InlineKeyboardButton(text="🏦 ПУМБ", callback_data=f"bank_pumb_{diamonds}")]
@@ -51,36 +50,36 @@ async def cmd_start(message: types.Message):
 async def donate_callback(callback: types.CallbackQuery):
     await callback.message.edit_text(
         "💎 <b>Поповнення донат валюти</b>\n\n"
-        "Напишіть, яку кількість донат валюти (в 💎) ви хочете придбати:"
+        "Напишіть, яку кількість 💎 ви хочете придбати:"
     )
     await callback.answer()
 
-# Обробка введеної кількості діамантів
+# Обробка кількості 💎
 @dp.message(lambda message: message.text and message.text.replace('.', '', 1).replace(',', '', 1).isdigit())
 async def process_diamond_amount(message: types.Message):
     try:
         diamonds = float(message.text.replace(',', '.'))
         if diamonds <= 0:
-            await message.answer("❌ Будь ласка, введіть число більше 0.")
+            await message.answer("❌ Введіть число більше 0.")
             return
         
         keyboard, amount_uah = get_bank_keyboard(diamonds)
         
         await message.answer(
             f"✅ Ви хочете придбати <b>{diamonds} 💎</b>\n\n"
-            f"До сплати: <b>{amount_uah} ₴</b> (курс 1💎 = {DIAMOND_TO_USD}$ × {USD_TO_UAH}₴)\n\n"
+            f"До сплати: <b>{amount_uah} ₴</b> (1💎 = {RATE} грн)\n\n"
             "Оберіть банк для оплати:",
             reply_markup=keyboard
         )
     except:
-        await message.answer("❌ Будь ласка, введіть число.")
+        await message.answer("❌ Будь ласка, введіть число (наприклад: 10)")
 
 # Обробка вибору банку
 @dp.callback_query(F.data.startswith("bank_"))
 async def process_bank(callback: types.CallbackQuery):
     _, bank, diamonds_str = callback.data.split("_")
     diamonds = float(diamonds_str)
-    amount_uah = round(diamonds * DIAMOND_TO_USD * USD_TO_UAH, 2)
+    amount_uah = round(diamonds * RATE, 2)
 
     if bank == "abank":
         card = "4400 0055 5011 1519"
@@ -92,13 +91,13 @@ async def process_bank(callback: types.CallbackQuery):
     text = (
         f"🏦 <b>Ви вибрали {bank_name}</b>\n\n"
         f"До сплати: <b>{diamonds} 💎 = {amount_uah} ₴</b>\n"
-        f"(1💎 = {DIAMOND_TO_USD}$ × {USD_TO_UAH}₴)\n\n"
+        f"(1💎 = {RATE} грн)\n\n"
         f"Номер карти:\n<code>{card}</code>\n\n"
         "⚠️ <b>Після оплати обов’язково скиньте квитанцію сюди!</b>"
     )
 
     await callback.message.edit_text(text)
-    await callback.answer()
+    await callback.answer("✅ Ок")
 
 # ===================== ЗАПУСК =====================
 async def main():
