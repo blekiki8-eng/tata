@@ -1,7 +1,4 @@
 {
   "buildCommand": "npm install -g serve",
-  "startCommand": "serve -s . -l ${PORT:-3000}",
-  "static": {
-    "directory": "."
-  }
+  "startCommand": "serve -s . -l ${PORT:-3000}"
 }
