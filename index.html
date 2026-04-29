@@ -9,6 +9,7 @@
         :root {
             --primary-color: #ffcc00;
             --secondary-color: #0088cc;
+            --premium-color: #e74c3c;
             --bg-color: #1a2a3a;
             --card-bg: #2c3e50;
         }
@@ -26,7 +27,6 @@
             user-select: none;
         }
 
-        /* Контент вкладок */
         .tab-content {
             flex: 1;
             display: none;
@@ -47,42 +47,30 @@
             border: 2px solid #fff;
             padding: 15px 30px;
             border-radius: 50px;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             text-transform: uppercase;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.1s;
             margin: 10px;
             width: 80%;
         }
 
-        .game-btn:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
+        .game-btn:active { transform: scale(0.95); }
 
         /* Озеро */
         #lake {
-            width: 250px;
-            height: 250px;
+            width: 220px;
+            height: 220px;
             background: radial-gradient(circle, #3498db 0%, #2980b9 100%);
             border-radius: 50%;
             border: 8px solid #ecf0f1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 100px;
+            font-size: 80px;
             margin: 20px 0;
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.3);
             position: relative;
-        }
-
-        .fishing-rod {
-            position: absolute;
-            bottom: -20px;
-            right: -20px;
-            transform: rotate(-15deg);
         }
 
         /* Статистика */
@@ -92,7 +80,28 @@
             border-radius: 20px;
             border: 2px solid var(--primary-color);
             width: 85%;
-            margin-top: 20px;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        .id-badge {
+            font-size: 12px;
+            background: #444;
+            padding: 2px 8px;
+            border-radius: 5px;
+            color: #bbb;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .balance-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
         }
 
         /* Нижня панель */
@@ -100,52 +109,40 @@
             display: flex;
             background-color: #121c26;
             border-top: 2px solid #2c3e50;
-            padding: 10px 0;
-            padding-bottom: 25px; /* для зручності на мобільних */
+            padding: 10px 0 25px 0;
         }
 
-        .nav-item {
-            flex: 1;
-            text-align: center;
-            color: #7f8c8d;
-            font-size: 12px;
-        }
+        .nav-item { flex: 1; text-align: center; color: #7f8c8d; font-size: 12px; }
+        .nav-item.active-nav { color: var(--primary-color); }
+        .icon { font-size: 24px; display: block; margin-bottom: 5px; }
 
-        .nav-item.active-nav {
-            color: var(--primary-color);
-        }
-
-        .icon {
-            font-size: 24px;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .status-msg {
-            height: 30px;
-            margin-top: 10px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
+        .status-msg { height: 30px; margin-top: 10px; font-weight: bold; color: var(--primary-color); }
     </style>
 </head>
 <body>
 
     <div id="profile" class="tab-content active">
-        <h2 style="color: var(--primary-color);">ПРОФІЛЬ РИБАЛКИ</h2>
+        <h2 style="color: var(--primary-color);">ПРОФІЛЬ</h2>
         <div class="stat-card">
-            <h3 id="user-name">Гість</h3>
-            <hr border="0" height="1px" background="#444">
-            <p style="font-size: 24px;">💰 <span id="balance">100</span> <br><small>Fish Coins</small></p>
+            <span class="id-badge">ID: <span id="user-id">00000000</span></span>
+            <h3 id="user-name" style="margin: 0 0 15px 0;">Гість</h3>
+            
+            <div class="balance-item">
+                <span>💰 Fish Coins:</span>
+                <span id="balance" style="color: var(--primary-color); font-weight: bold;">100</span>
+            </div>
+
+            <div class="balance-item">
+                <span>💎 Donat Fish Coins:</span>
+                <span id="dfc-balance" style="color: var(--premium-color); font-weight: bold;">0</span>
+            </div>
+            <p style="font-size: 10px; color: #7f8c8d; text-align: center; margin-top: 10px;">DFC скоро у продажу</p>
         </div>
     </div>
 
     <div id="fishing" class="tab-content">
         <h2 style="color: #3498db;">ОЗЕРО ТАТА</h2>
-        <div id="lake">
-            🌊
-            <div class="fishing-rod">🎣</div>
-        </div>
+        <div id="lake">🌊</div>
         <div class="status-msg" id="game-status">Закидай вудку!</div>
         <button class="game-btn" onclick="startFishing()">ЛОВИТИ!</button>
     </div>
@@ -153,8 +150,7 @@
     <div id="market" class="tab-content">
         <h2 style="color: #2ecc71;">РИНОК</h2>
         <div class="stat-card">
-            <p>Тут ти зможеш купувати нові вудки та наживку!</p>
-            <p style="font-size: 14px; color: #bdc3c7;">(Розділ у розробці)</p>
+            <p>Розділ у розробці...</p>
             <button class="game-btn" style="background: grey; opacity: 0.5;">СКОРО</button>
         </div>
     </div>
@@ -176,6 +172,7 @@
         tg.expand();
 
         let coins = 100;
+        let dfc = 0;
 
         function showTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -186,26 +183,23 @@
 
         function updateUI() {
             document.getElementById('balance').innerText = coins;
+            document.getElementById('dfc-balance').innerText = dfc;
         }
 
         function startFishing() {
             const status = document.getElementById('game-status');
-            const lake = document.getElementById('lake');
-            
             status.innerText = "Чекаємо на клювання...";
-            lake.style.transform = "scale(1.05)";
             
             setTimeout(() => {
-                lake.style.transform = "scale(1)";
                 const chance = Math.random() * 100;
                 let result = "";
                 let change = 0;
 
                 if (chance <= 25) {
-                    result = "🍾 Бутилка! (Сміття)";
+                    result = "🍾 Бутилка!";
                     change = -10;
                 } else if (chance <= 50) {
-                    result = "🛍️ Пакет! (Сміття)";
+                    result = "🛍️ Пакет!";
                     change = -10;
                 } else if (chance <= 75) {
                     result = "🐟 Маленька рибка!";
@@ -216,7 +210,7 @@
                 }
 
                 coins += change;
-                if (coins < 0) coins = 0; // Щоб не було від'ємного балансу
+                if (coins < 0) coins = 0;
                 
                 status.innerText = `${result} [${change > 0 ? '+' : ''}${change} FC]`;
                 updateUI();
@@ -224,9 +218,12 @@
             }, 1200);
         }
 
+        // Отримання даних з Telegram
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
+            document.getElementById('user-id').innerText = tg.initDataUnsafe.user.id;
         }
+
         updateUI();
     </script>
 </body>
