@@ -1,4 +1,4 @@
-from aiogram import Bot, Dispatcher, F
+from aiogram import Bot, Dispatcher, types, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
@@ -19,10 +19,11 @@ dp = Dispatcher()
 
 # ===================== КЛАВІАТУРА =====================
 def get_start_keyboard():
-    return InlineKeyboardMarkup(inline_keyboard=[
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🎮 Games", web_app=WebAppInfo(url=WEB_APP_URL))],
         [InlineKeyboardButton(text="💰 Donate", callback_data="donate")]
     ])
+    return keyboard
 
 # ===================== ХЕНДЛЕРИ =====================
 @dp.message(Command("start"))
