@@ -2,67 +2,160 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Рибалка Віті</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fishing Game</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            margin: 0; padding: 0;
-            background: linear-gradient(to bottom, #0a3d62, #1e90ff);
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a1a;
             color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
             height: 100vh;
             overflow: hidden;
         }
-        .score { font-size: 35px; margin: 20px 0 10px 0; font-weight: bold; }
-        .energy { font-size: 24px; margin-bottom: 30px; }
 
-        #tap-area {
-            width: 270px; height: 270px; margin: 30px auto;
-            background: radial-gradient(circle, #ffeb3b, #ff9800);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 150px; cursor: pointer;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+        /* Контент вкладок */
+        .tab-content {
+            flex: 1;
+            display: none;
+            padding: 20px;
+            text-align: center;
         }
-        #tap-area:active { transform: scale(0.85); }
 
-        .donate-btn {
-            background: linear-gradient(#ff5722, #f44336);
+        .active {
+            display: block;
+        }
+
+        /* Нижня панель навігації */
+        .nav-bar {
+            display: flex;
+            background-color: #2c2c2c;
+            border-top: 1px solid #444;
+            padding: 10px 0;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .nav-item.active-nav {
+            color: #0088cc;
+            font-weight: bold;
+        }
+
+        .icon {
+            font-size: 24px;
+            display: block;
+        }
+
+        button {
+            background-color: #0088cc;
             color: white;
             border: none;
-            padding: 16px 32px;
-            margin: 20px auto;
-            border-radius: 50px;
-            font-size: 20px;
-            font-weight: bold;
-            width: 85%;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 18px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
-    <div class="score">Улов: <span id="score">0</span> РибКоінів</div>
-    <div class="energy">Енергія: <span id="energy">100</span>/100</div>
-    
-    <div id="tap-area">🐠</div>
-    
-    <button class="donate-btn" onclick="alert('💰 Donate відкрито в чаті з ботом')">💰 Donate</button>
+    <div id="profile" class="tab-content active">
+        <h2>Мій Профіль</h2>
+        <div style="background: #333; padding: 20px; border-radius: 15px;">
+            <p>Рибалка: <span id="user-name">Гість</span></p>
+            <p>Золото: 💰 <span id="balance">100</span></p>
+            <p>Спіймано риби: 🐟 <span id="fish-count">0</span></p>
+        </div>
+    </div>
+
+    <div id="fishing" class="tab-content">
+        <h2>Озеро</h2>
+        <div id="water-area" style="font-size: 80px; margin: 40px 0;">🌊</div>
+        <button onclick="catchFish()">Закинути вудку!</button>
+        <p id="game-status"></p>
+    </div>
+
+    <div id="market" class="tab-content">
+        <h2>Ринок</h2>
+        <p>Продай свій улов тут</p>
+        <div style="border: 1px solid #444; padding: 15px; border-radius: 10px;">
+            <p>🐟 Свіжа риба - 10💰/шт</p>
+            <button onclick="sellFish()">Продати все</button>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active-nav" onclick="showTab('profile', this)">
+            <span class="icon">👤</span> Профіль
+        </div>
+        <div class="nav-item" onclick="showTab('fishing', this)">
+            <span class="icon">🎣</span> Риболовля
+        </div>
+        <div class="nav-item" onclick="showTab('market', this)">
+            <span class="icon">🛒</span> Ринок
+        </div>
+    </div>
 
     <script>
-        let score = 0;
-        let energy = 100;
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Розгорнути на весь екран
 
-        document.getElementById('tap-area').addEventListener('click', () => {
-            if (energy > 0) {
-                score += 2;
-                energy -= 1;
-                document.getElementById('score').textContent = score;
-                document.getElementById('energy').textContent = energy;
+        // Проста логіка даних
+        let balance = 100;
+        let fishCount = 0;
+
+        function showTab(tabId, element) {
+            // Ховаємо всі вкладки
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            // Знімаємо активний стан з кнопок навігації
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active-nav'));
+            
+            // Показуємо потрібну
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active-nav');
+        }
+
+        function catchFish() {
+            const status = document.getElementById('game-status');
+            status.innerText = "Закидаємо...";
+            
+            setTimeout(() => {
+                if (Math.random() > 0.5) {
+                    fishCount++;
+                    status.innerText = "🎣 Є! Ти спіймав рибу!";
+                    document.getElementById('fish-count').innerText = fishCount;
+                } else {
+                    status.innerText = "❌ Зірвалася...";
+                }
+            }, 1000);
+        }
+
+        function sellFish() {
+            if (fishCount > 0) {
+                balance += fishCount * 10;
+                fishCount = 0;
+                document.getElementById('balance').innerText = balance;
+                document.getElementById('fish-count').innerText = fishCount;
+                alert("Рибу продано!");
+            } else {
+                alert("У тебе немає риби!");
             }
-        });
+        }
 
-        console.log("✅ Рибалка Віті Mini App успішно завантажено");
+        // Відображаємо ім'я з Телеграму
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
+        }
     </script>
 </body>
 </html>
