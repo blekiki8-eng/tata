@@ -9,68 +9,43 @@
         :root { --primary: #00d2ff; --bg: #0f172a; --card: #1e293b; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; }
         
-        /* Реалістичне озеро з анімацією */
         #lake { 
             width: 250px; height: 250px; 
             background: radial-gradient(circle at 30% 30%, #00f2fe, #004e92);
-            border-radius: 50%; 
-            margin: 30px auto;
-            position: relative;
-            box-shadow: 0 0 50px rgba(0, 210, 255, 0.3), inset 0 0 30px rgba(0,0,0,0.5);
-            border: 10px solid rgba(255,255,255,0.1);
-            overflow: hidden;
+            border-radius: 50%; margin: 30px auto;
+            position: relative; box-shadow: 0 0 50px rgba(0, 210, 255, 0.3);
             display: flex; align-items: center; justify-content: center;
         }
 
-        #lake::after {
-            content: ""; position: absolute; width: 200%; height: 200%;
-            background: repeating-linear-gradient(45deg, transparent, rgba(255,255,255,0.05) 20px, transparent 40px);
-            animation: waves 10s linear infinite;
-        }
-
-        @keyframes waves { 
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        .stat-card { background: var(--card); border-radius: 20px; padding: 20px; width: 85%; margin: 10px auto; border: 1px solid rgba(255,255,255,0.1); }
-        .row { display: flex; justify-content: space-between; margin: 10px 0; font-size: 14px; }
+        .stat-card { background: var(--card); border-radius: 20px; padding: 20px; width: 85%; margin: 10px auto; }
+        .row { display: flex; justify-content: space-between; margin: 10px 0; }
         .game-btn { 
             background: linear-gradient(135deg, #00d2ff, #3a7bd5); 
             color: white; border: none; padding: 20px; border-radius: 50px; 
-            width: 80%; font-size: 18px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3); transition: 0.2s;
+            width: 80%; font-size: 18px; font-weight: bold;
         }
-        .game-btn:active { transform: scale(0.95); }
-        
-        .tab-content { display: none; flex-direction: column; align-items: center; padding-top: 20px; height: 80vh; }
+        .tab-content { display: none; flex-direction: column; align-items: center; padding-top: 20px; }
         .active { display: flex; }
         .nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #0f172a; padding-bottom: 20px; border-top: 1px solid #1e293b; }
         .nav-item { flex: 1; text-align: center; padding: 15px; color: #64748b; font-size: 12px; }
-        .active-nav { color: var(--primary); font-weight: bold; }
-        #bobber { font-size: 50px; z-index: 10; position: relative; }
-        .biting { animation: shake 0.1s infinite; }
-        @keyframes shake { 0% { transform: rotate(5deg); } 50% { transform: rotate(-5deg); } }
+        .active-nav { color: var(--primary); }
     </style>
 </head>
 <body>
 
     <div id="profile" class="tab-content">
-        <h2 style="color: var(--primary);">МІЙ ПРОФІЛЬ</h2>
+        <h2>МІЙ ПРОФІЛЬ</h2>
         <div class="stat-card">
             <div class="row"><span>👤 Гравець:</span><span id="u-name">...</span></div>
-            <div class="row"><span>🆔 Мій ID:</span><span id="u-id" style="color: #94a3b8;">000000</span></div>
-            <div class="row"><span>💰 Баланс:</span><span id="balance" style="color: #fbbf24; font-weight: bold;">0</span></div>
+            <div class="row"><span>🆔 Мій ID:</span><span id="u-id">Завантаження...</span></div>
+            <div class="row"><span>💰 Баланс:</span><span id="balance" style="color: #fbbf24;">0</span></div>
         </div>
     </div>
 
     <div id="fishing" class="tab-content active">
-        <h2 style="letter-spacing: 5px;">ОЗЕРО</h2>
-        <div id="lake">
-            <div id="bobber" style="display:none;">🏮</div>
-            <div id="water-icon" style="font-size: 70px;">🌊</div>
-        </div>
-        <p id="status" style="font-size: 18px; color: #38bdf8;">Готовий до риболовлі?</p>
+        <h2>ОЗЕРО</h2>
+        <div id="lake"><div id="bobber" style="font-size: 50px; display:none;">🏮</div><div id="water">🌊</div></div>
+        <p id="status">Готовий до риболовлі?</p>
         <button id="action-btn" class="game-btn" onclick="handleAction()">ЗАКИНУТИ</button>
     </div>
 
@@ -81,54 +56,46 @@
 
     <script>
         const tg = window.Telegram.WebApp;
-        const UID = tg.initDataUnsafe?.user?.id;
-        let coins = 0, isFishing = false, canPull = false, timer;
+        const UID = tg.initDataUnsafe?.user?.id || "Unknown";
+        let coins = 0, isFishing = false, canPull = false;
 
         async function load() {
+            // Отримуємо актуальні дані з бази при кожному вході
             const r = await fetch(`/api/get_balance?user_id=${UID}`);
             const d = await r.json();
-            coins = d.coins;
-            document.getElementById('u-name').innerText = d.name;
-            document.getElementById('u-id').innerText = UID; // Встановлюємо ID
-            document.getElementById('balance').innerText = coins;
-        }
-
-        function handleAction() {
-            const btn = document.getElementById('action-btn');
-            const st = document.getElementById('status');
-            const bob = document.getElementById('bobber');
-            const wat = document.getElementById('water-icon');
-
-            if (!isFishing) {
-                isFishing = true; canPull = false;
-                btn.innerText = "ЧЕКАЙ..."; btn.disabled = true;
-                st.innerText = "Поплавок на воді...";
-                wat.style.display = "none"; bob.style.display = "block";
-
-                timer = setTimeout(() => {
-                    canPull = true; btn.disabled = false;
-                    btn.innerText = "ТЯГНИ!"; st.innerText = "КЛЮЄ!!!";
-                    bob.classList.add('biting');
-                    tg.HapticFeedback.notificationOccurred('warning');
-                }, Math.random() * 3000 + 2000);
-            } else if (canPull) {
-                isFishing = false;
-                bob.classList.remove('biting');
-                const win = Math.floor(Math.random() * 20) + 5;
-                coins += win;
-                st.innerText = `Зловив рибу! +${win} монет`;
-                btn.innerText = "ЗАКИНУТИ ЗНОВУ";
-                bob.style.display = "none"; wat.style.display = "block";
+            if (d) {
+                coins = d.coins;
+                document.getElementById('u-name').innerText = d.name || "Рибалка";
+                document.getElementById('u-id').innerText = UID;
                 document.getElementById('balance').innerText = coins;
-                save();
             }
         }
 
         async function save() {
+            // Зберігаємо дані в базу, щоб вони не зникли
             await fetch('/api/save_balance', {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ user_id: UID, coins: coins })
             });
+        }
+
+        function handleAction() {
+            const btn = document.getElementById('action-btn');
+            if (!isFishing) {
+                isFishing = true; btn.innerText = "ЧЕКАЙ...";
+                setTimeout(() => {
+                    canPull = true; btn.innerText = "ТЯГНИ!";
+                    tg.HapticFeedback.impactOccurred('heavy');
+                }, 2000);
+            } else if (canPull) {
+                isFishing = false; canPull = false;
+                const win = Math.floor(Math.random() * 15) + 5;
+                coins += win;
+                document.getElementById('balance').innerText = coins;
+                btn.innerText = "ЗАКИНУТИ";
+                save(); // Зберігаємо після кожного улову
+            }
         }
 
         function tab(id, el) {
@@ -138,6 +105,7 @@
             el.classList.add('active-nav');
         }
 
+        tg.expand();
         load();
     </script>
 </body>
