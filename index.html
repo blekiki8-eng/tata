@@ -7,55 +7,67 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --primary: #00d2ff; --bg: #0f172a; --card: #1e293b; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; }
         
-        /* Озеро */
+        /* ВИПРАВЛЕННЯ: Дозволяємо прокручування по вертикалі, якщо контент не вміщається */
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: var(--bg); 
+            color: white; 
+            margin: 0; 
+            overflow-x: hidden; /* Забороняємо горизонтальне прокручування */
+            overflow-y: auto;   /* Дозволяємо вертикальне прокручування */
+            padding-bottom: 80px; /* Відступ знизу, щоб контент не ховався за навбаром */
+        }
+        
+        /* ВИПРАВЛЕННЯ: Трохи зменшили озеро, щоб звільнити місце */
         #lake { 
-            width: 250px; height: 250px; 
+            width: 200px; height: 200px; 
             background: radial-gradient(circle at 30% 30%, #00f2fe, #004e92);
-            border-radius: 50%; margin: 40px auto;
-            position: relative; box-shadow: 0 0 50px rgba(0, 210, 255, 0.3);
+            border-radius: 50%; margin: 20px auto;
+            position: relative; box-shadow: 0 0 40px rgba(0, 210, 255, 0.3);
             display: flex; align-items: center; justify-content: center;
             overflow: visible;
         }
 
         /* Твій поплавок */
         #my-poplavok {
-            width: 60px; height: 60px;
+            width: 50px; height: 50px; /* Зменшили, щоб пропорційно озеру */
             position: absolute; display: none; z-index: 100;
         }
 
-        /* Анімація кружіння */
-        .orbit {
-            animation: rotateOrbit 4s linear infinite;
-        }
-
+        /* Анімація кружіння (радіус зменшено відповідно до озера) */
+        .orbit { animation: rotateOrbit 4s linear infinite; }
         @keyframes rotateOrbit {
-            from { transform: rotate(0deg) translateX(120px) rotate(0deg); }
-            to { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+            from { transform: rotate(0deg) translateX(100px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
         }
 
         /* Анімація клювання */
-        .bite {
-            animation: shakeBite 0.2s infinite;
-        }
-
+        .bite { animation: shakeBite 0.2s infinite; }
         @keyframes shakeBite {
-            0%, 100% { transform: rotate(0deg) translateX(120px) translateY(0px); }
-            50% { transform: rotate(0deg) translateX(120px) translateY(15px); }
+            0%, 100% { transform: rotate(0deg) translateX(100px) translateY(0px); }
+            50% { transform: rotate(0deg) translateX(100px) translateY(12px); }
         }
 
-        .stat-card { background: var(--card); border-radius: 20px; padding: 20px; width: 85%; margin: 10px auto; border: 1px solid rgba(255,255,255,0.1); }
-        .row { display: flex; justify-content: space-between; margin: 10px 0; }
+        .stat-card { background: var(--card); border-radius: 20px; padding: 15px; width: 85%; margin: 10px auto; border: 1px solid rgba(255,255,255,0.1); }
+        .row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px;}
+        
+        /* Кнопка */
         .game-btn { 
             background: linear-gradient(135deg, #00d2ff, #3a7bd5); 
-            color: white; border: none; padding: 20px; border-radius: 50px; 
-            width: 85%; font-size: 20px; font-weight: bold; cursor: pointer;
+            color: white; border: none; 
+            padding: 15px; /* Зменшили паддінг */
+            border-radius: 50px; 
+            width: 85%; font-size: 18px; font-weight: bold; cursor: pointer;
+            margin-bottom: 20px; /* Відступ знизу кнопки */
         }
-        .tab-content { display: none; flex-direction: column; align-items: center; padding-top: 20px; }
+        
+        .tab-content { display: none; flex-direction: column; align-items: center; padding-top: 15px; }
         .active { display: flex; }
-        .nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #0f172a; padding-bottom: 25px; border-top: 1px solid #1e293b; }
-        .nav-item { flex: 1; text-align: center; padding: 15px; color: #64748b; font-size: 14px; }
+        
+        /* Навігація - залишаємо фіксованою знизу */
+        .nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #0f172a; padding-bottom: 20px; border-top: 1px solid #1e293b; z-index: 1000; }
+        .nav-item { flex: 1; text-align: center; padding: 15px; color: #64748b; font-size: 12px; }
         .active-nav { color: var(--primary); font-weight: bold; }
     </style>
 </head>
@@ -71,12 +83,12 @@
     </div>
 
     <div id="fishing" class="tab-content active">
-        <h2 style="letter-spacing: 5px;">ОЗЕРО</h2>
+        <h2 style="letter-spacing: 5px; margin-bottom: 10px;">ОЗЕРО</h2>
         <div id="lake">
             <img src="poplavok.png" id="my-poplavok">
-            <div id="water-icon" style="font-size: 80px;">🌊</div>
+            <div id="water-icon" style="font-size: 60px;">🌊</div>
         </div>
-        <p id="status" style="font-size: 18px; color: #38bdf8;">Готовий до риболовлі?</p>
+        <p id="status" style="font-size: 16px; color: #38bdf8; margin: 10px 0;">Готовий до риболовлі?</p>
         <button id="action-btn" class="game-btn" onclick="handleAction()">ЗАКИНУТИ</button>
     </div>
 
