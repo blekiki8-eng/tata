@@ -49,9 +49,20 @@ async def get_balance(request):
     return web.json_response(user)
 
 async def save_balance(request):
-    data = await request.json()
-    await users_col.update_one({"user_id": str(data.get("user_id"))}, {"$set": data})
-    return web.json_response({"ok": True})
+    try:
+        data = await request.json()
+        u_id = str(data.get("user_id")) # Перетворюємо в рядок обов'язково
+        coins = int(data.get("coins"))  # Перетворюємо в число
+        
+        await users_col.update_one(
+            {"user_id": u_id},
+            {"$set": {"coins": coins}},
+            upsert=True # Якщо користувача немає, він створиться
+        )
+        return web.json_response({"status": "ok"})
+    except Exception as e:
+        print(f"Помилка збереження: {e}")
+        return web.json_response({"status": "error"}, status=500)
 
 async def handle_index(request): return web.FileResponse('index.html')
 
