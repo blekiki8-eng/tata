@@ -3,43 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fishing Game PRO</title>
+    <title>Fish Cash Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #00d2ff; --bg: #0f172a; --card: #1e293b; --accent: #4ade80; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; overflow-y: auto; padding-bottom: 100px; }
+        :root { --primary: #00d2ff; --bg: #0f172a; --card: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 100px; overflow-x: hidden; }
         
         .tab-content { display: none; flex-direction: column; align-items: center; padding: 20px; width: 100%; box-sizing: border-box; }
         .active { display: flex; }
 
-        /* Озеро та Поплавок */
         #lake { 
             width: 220px; height: 220px; 
             background: radial-gradient(circle at 30% 30%, #00f2fe, #004e92);
             border-radius: 50%; margin: 20px auto; position: relative;
             box-shadow: 0 0 40px rgba(0, 210, 255, 0.4); display: flex; align-items: center; justify-content: center;
         }
+
         #my-poplavok {
-            width: 70px; height: 70px; /* Збільшений поплавок */
-            position: absolute; display: none; z-index: 100; transition: all 0.3s ease;
+            width: 65px; height: 65px;
+            position: absolute; display: none; z-index: 100;
         }
 
-        /* Анімація */
         .bite { animation: shake 0.2s infinite; }
-        @keyframes shake { 0% { transform: translateY(0); } 50% { transform: translateY(15px); } 100% { transform: translateY(0); } }
+        @keyframes shake { 0% { transform: translateY(0); } 50% { transform: translateY(12px); } 100% { transform: translateY(0); } }
 
-        /* Картки та кнопки */
         .stat-card { background: var(--card); border-radius: 20px; padding: 15px; width: 100%; margin-bottom: 15px; }
         .row { display: flex; justify-content: space-between; margin: 10px 0; }
+        
         .game-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); color: white; border: none; padding: 18px; border-radius: 50px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; }
         
-        /* Маркет */
         .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
         .market-item { background: var(--card); height: 100px; border-radius: 15px; border: 2px dashed #334155; display: flex; align-items: center; justify-content: center; color: #475569; }
 
-        /* Навігація */
-        .nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #1e293b; padding-bottom: 25px; border-top: 1px solid #334155; z-index: 1000; }
-        .nav-item { flex: 1; text-align: center; padding: 15px 5px; color: #94a3b8; font-size: 11px; }
+        .nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #1e293b; padding-bottom: 25px; border-top: 1px solid #334155; }
+        .nav-item { flex: 1; text-align: center; padding: 15px; color: #94a3b8; font-size: 12px; }
         .active-nav { color: var(--primary); font-weight: bold; }
     </style>
 </head>
@@ -50,22 +47,20 @@
         <h2>ПРОФІЛЬ</h2>
         <div class="stat-card">
             <div class="row"><span>👤 Гравець:</span><span id="u-name">...</span></div>
-            <div class="row"><span>💰 Баланс:</span><span id="balance-p">0</span></div>
+            <div class="row"><span>🆔 Мій ID:</span><span id="u-id">...</span></div>
+            <div class="row"><span>💰 Баланс:</span><span id="balance" style="color: #fbbf24;">0</span></div>
         </div>
-        <div class="stat-card">
-            <p style="font-size: 14px; color: #94a3b8;">Запроси друга та отримай 50 монет!</p>
-            <button class="game-btn" style="padding: 10px; font-size: 14px;" onclick="copyRef()">📋 Копіювати посилання</button>
-        </div>
+        <button class="game-btn" style="font-size: 14px; padding: 12px;" onclick="copyRef()">🔗 Запросити друга (+50 💰)</button>
     </div>
 
-    <!-- ОЗЕРО -->
+    <!-- ГРА -->
     <div id="fishing" class="tab-content active">
         <h2>ОЗЕРО</h2>
         <div id="lake">
             <img src="poplavok.png" id="my-poplavok">
             <div id="water-icon" style="font-size: 60px;">🌊</div>
         </div>
-        <div id="status" style="height: 50px; text-align: center;">Готовий?</div>
+        <div id="status" style="height: 50px; text-align: center; margin-top: 10px;">Готовий?</div>
         <button id="action-btn" class="game-btn" onclick="handleAction()">ЗАКИНУТИ</button>
     </div>
 
@@ -78,38 +73,37 @@
             <div class="market-item">Пусто</div>
             <div class="market-item">Пусто</div>
         </div>
-        <button class="game-btn" style="margin-top: 20px; background: #8b5cf6;" onclick="tab('rewards', document.getElementById('nav-rewards'))">🎁 REWARDS</button>
+        <button class="game-btn" style="margin-top: 20px; background: #8b5cf6;" onclick="tab('rewards')">🎁 REWARDS</button>
     </div>
 
     <!-- REWARDS -->
     <div id="rewards" class="tab-content">
         <h2>REWARDS</h2>
-        <div class="stat-card" style="text-align: center; color: #94a3b8;">
+        <div class="stat-card" style="text-align: center; color: #64748b;">
             Завдання скоро з'являться...
         </div>
+        <button class="game-btn" onclick="tab('market')">Назад</button>
     </div>
 
     <div class="nav">
         <div class="nav-item" onclick="tab('profile', this)">ПРОФІЛЬ</div>
         <div class="nav-item active-nav" onclick="tab('fishing', this)">ОЗЕРО</div>
-        <div class="nav-item" id="nav-market" onclick="tab('market', this)">МАРКЕТ</div>
+        <div class="nav-item" onclick="tab('market', this)">МАРКЕТ</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         const UID = String(tg.initDataUnsafe?.user?.id || "000000");
-        const UName = tg.initDataUnsafe?.user?.first_name || "Рибалка";
         let coins = 0, isFishing = false, canPull = false;
 
-        // ШАНСИ: 40% сміття, 60% риба (шанс на рибу став вищим)
         function getRandomLoot() {
             const chance = Math.random() * 100;
-            if (chance < 40) {
+            if (chance < 40) { // 40% сміття
                 return Math.random() < 0.5 ? { name: "🍼 Бутилка", price: -10 } : { name: "🛍️ Пакет", price: -5 };
-            } else {
-                const fishChance = Math.random() * 100;
-                if (fishChance <= 2) return { name: "🔥 ДОБРИЙ КАРАСЬ", price: 67, special: true }; // Шанс карася х2 (2%)
-                else if (fishChance <= 35) return { name: "🐠 Маленький карасик", price: 15 };
+            } else { // 60% риба
+                const f = Math.random() * 100;
+                if (f <= 2) return { name: "🔥 ДОБРИЙ КАРАСЬ", price: 67, special: true };
+                else if (f <= 35) return { name: "🐠 Маленький карасик", price: 15 };
                 else return { name: "🐟 Маленька риба", price: 5 };
             }
         }
@@ -120,7 +114,8 @@
             if (!d.error) {
                 coins = d.coins;
                 document.getElementById('u-name').innerText = d.name;
-                document.getElementById('balance-p').innerText = coins;
+                document.getElementById('u-id').innerText = UID;
+                document.getElementById('balance').innerText = coins;
             }
         }
 
@@ -132,9 +127,10 @@
         }
 
         function copyRef() {
-            const refLink = `https://t.me/ТВІЙ_ЮЗЕРНЕЙМ_БОТА?start=${UID}`;
-            navigator.clipboard.writeText(refLink);
-            alert("Посилання скопійовано! Відправ його другу.");
+            // ЗАМІНИ 'your_bot_user_name' НА СВОГО БОТА
+            const link = `https://t.me/cash_production_bot?start=${UID}`;
+            navigator.clipboard.writeText(link);
+            alert("Посилання скопійовано!");
         }
 
         function handleAction() {
@@ -146,18 +142,15 @@
             if (!isFishing) {
                 isFishing = true; canPull = false;
                 btn.innerText = "ЧЕКАЙ..."; btn.disabled = true;
-                st.innerText = "Вудка закинута...";
+                st.innerText = "Закидаємо вудку...";
                 
-                // Рандомне місце поплавка на озері
+                // Рандомне місце
                 const angle = Math.random() * Math.PI * 2;
-                const dist = Math.random() * 70;
-                const x = Math.cos(angle) * dist;
-                const y = Math.sin(angle) * dist;
+                const dist = Math.random() * 60;
+                pop.style.left = `calc(50% - 32px + ${Math.cos(angle)*dist}px)`;
+                pop.style.top = `calc(50% - 32px + ${Math.sin(angle)*dist}px)`;
                 
-                pop.style.left = `calc(50% - 35px + ${x}px)`;
-                pop.style.top = `calc(50% - 35px + ${y}px)`;
-                pop.style.display = "block";
-                wat.style.display = "none";
+                pop.style.display = "block"; wat.style.display = "none";
 
                 setTimeout(() => {
                     canPull = true; btn.disabled = false;
@@ -171,8 +164,8 @@
                 
                 const loot = getRandomLoot();
                 coins += loot.price; if (coins < 0) coins = 0;
-                document.getElementById('balance-p').innerText = coins;
-                st.innerHTML = `${loot.name} (${loot.price > 0 ? '+' : ''}${loot.price})`;
+                document.getElementById('balance').innerText = coins;
+                st.innerHTML = `${loot.name}<br>${loot.price > 0 ? '+' : ''}${loot.price} 💰`;
                 btn.innerText = "ЗАКИНУТИ";
                 save();
             }
@@ -180,9 +173,11 @@
 
         function tab(id, el) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
             document.getElementById(id).classList.add('active');
-            if(el) el.classList.add('active-nav');
+            if(el) {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+                el.classList.add('active-nav');
+            }
         }
 
         tg.expand();
