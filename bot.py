@@ -6,18 +6,21 @@ from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 from aiohttp import web
 from motor.motor_asyncio import AsyncIOMotorClient
 
+# Налаштування з Railway
 TOKEN = os.getenv("BOT_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL") 
 MONGO_URL = os.getenv("MONGO_URL")
 PORT = int(os.getenv("PORT", 8080))
 
+# Канал для підписки
 CHANNELS = [{"url": "https://t.me/vexoo_hub", "id": "@vexoo_hub"}]
+# Доступні промокоди
 PROMO_CODES = {"hello": 100, "News": 67}
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# ФІНАЛЬНА БАЗА ДАНИХ (Більше не змінюємо назву, щоб баланс жив вічно)
+# ФІНАЛЬНА БАЗА ДАНИХ (Баланс не обнуляється)
 client = AsyncIOMotorClient(MONGO_URL, tlsAllowInvalidCertificates=True)
 db = client["fish_cash_final"]
 users_col = db["users"]
@@ -57,14 +60,14 @@ async def show_main_menu(message: types.Message):
         await users_col.insert_one({
             "user_id": u_id, 
             "coins": 100, 
-            "lang": "en", # Мова за замовчуванням
+            "lang": "en",
             "name": message.chat.full_name or "Fisherman",
             "used_promos": []
         })
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🎣 Play Game", web_app=WebAppInfo(url=WEBAPP_URL))]
     ])
-    await bot.send_message(message.chat.id, "Welcome back! Ready for fishing?", reply_markup=kb)
+    await bot.send_message(message.chat.id, "Welcome! Ready for fishing?", reply_markup=kb)
 
 # API
 async def get_user_data(request):
