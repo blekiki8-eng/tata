@@ -6,21 +6,18 @@ from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 from aiohttp import web
 from motor.motor_asyncio import AsyncIOMotorClient
 
-# Налаштування з Railway
 TOKEN = os.getenv("BOT_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL") 
 MONGO_URL = os.getenv("MONGO_URL")
 PORT = int(os.getenv("PORT", 8080))
 
-# Канал для підписки
 CHANNELS = [{"url": "https://t.me/vexoo_hub", "id": "@vexoo_hub"}]
-# Доступні промокоди
 PROMO_CODES = {"hello": 100, "News": 67}
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# ФІНАЛЬНА БАЗА ДАНИХ (Баланс не обнуляється)
+# ФІНАЛЬНА БАЗА ДАНИХ
 client = AsyncIOMotorClient(MONGO_URL, tlsAllowInvalidCertificates=True)
 db = client["fish_cash_final"]
 users_col = db["users"]
@@ -62,12 +59,13 @@ async def show_main_menu(message: types.Message):
             "coins": 100, 
             "lang": "en",
             "name": message.chat.full_name or "Fisherman",
-            "used_promos": []
+            "used_promos": [],
+            "inventory": []
         })
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🎣 Play Game", web_app=WebAppInfo(url=WEBAPP_URL))]
     ])
-    await bot.send_message(message.chat.id, "Welcome! Ready for fishing?", reply_markup=kb)
+    await bot.send_message(message.chat.id, "Welcome back! Ready for fishing?", reply_markup=kb)
 
 # API
 async def get_user_data(request):
@@ -82,8 +80,14 @@ async def save_user_data(request):
     update_data = {}
     if "coins" in data: update_data["coins"] = int(data["coins"])
     if "lang" in data: update_data["lang"] = data["lang"]
-    
     await users_col.update_one({"user_id": u_id}, {"$set": update_data}, upsert=True)
+    return web.json_response({"ok": True})
+
+async def add_to_inventory(request):
+    data = await request.json()
+    u_id, item_id = str(data.get("user_id")), data.get("item_id")
+    # Додаємо предмет в масив інвентарю
+    await users_col.update_one({"user_id": u_id}, {"$push": {"inventory": {"id": item_id}}})
     return web.json_response({"ok": True})
 
 async def use_promo(request):
@@ -105,6 +109,7 @@ app.router.add_get('/', handle_index)
 app.router.add_get('/poplavok.png', handle_poplavok)
 app.router.add_get('/api/get_user', get_user_data)
 app.router.add_post('/api/save_user', save_user_data)
+app.router.add_post('/api/add_to_inventory', add_to_inventory)
 app.router.add_post('/api/use_promo', use_promo)
 
 async def main():
