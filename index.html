@@ -3,58 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fish Cash Global</title>
+    <title>Fish Market Global</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --primary: #00d2ff; --bg: #0f172a; --card: #1e293b; --rare: #a855f7; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 110px; overflow-y: auto; }
-        .tab-content { display: none; flex-direction: column; align-items: center; padding: 20px; width: 100%; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 110px; }
+        .tab-content { display: none; flex-direction: column; align-items: center; padding: 20px; }
         .active { display: flex; }
-        .stat-card { background: var(--card); border-radius: 20px; padding: 15px; width: 100%; margin-bottom: 15px; border: 1px solid #334155; }
-        .row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
-        .val { color: var(--primary); font-weight: bold; }
-        #lake { width: 280px; height: 280px; background: radial-gradient(circle at 30% 30%, #00f2fe, #004e92); border-radius: 50%; margin: 20px auto; position: relative; box-shadow: 0 0 40px rgba(0, 210, 255, 0.2); }
-        #my-poplavok { width: 60px; height: 60px; position: absolute; display: none; z-index: 10; }
+        .stat-card { background: var(--card); border-radius: 20px; padding: 15px; width: 100%; margin-bottom: 15px; border: 1px solid #334155; box-sizing: border-box; }
+        #lake { width: 260px; height: 260px; background: radial-gradient(circle at 30% 30%, #00f2fe, #004e92); border-radius: 50%; margin: 20px auto; position: relative; box-shadow: 0 0 40px rgba(0, 210, 255, 0.2); }
+        #my-poplavok { width: 50px; height: 50px; position: absolute; display: none; }
         .bite { animation: shake 0.2s infinite; }
-        @keyframes shake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
-        .game-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); color: white; border: none; padding: 18px; border-radius: 50px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; }
+        @keyframes shake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+        .game-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); color: white; border: none; padding: 15px; border-radius: 50px; width: 100%; font-weight: bold; }
         .nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #1e293b; padding-bottom: 25px; border-top: 1px solid #334155; }
-        .nav-item { flex: 1; text-align: center; padding: 15px; color: #94a3b8; font-size: 11px; cursor: pointer; }
+        .nav-item { flex: 1; text-align: center; padding: 15px; color: #94a3b8; font-size: 11px; }
         .active-nav { color: var(--primary); font-weight: bold; }
         .inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-        .inv-item { background: var(--card); padding: 10px; border-radius: 15px; border: 1px solid #334155; text-align: center; font-size: 12px; }
+        .inv-item { background: var(--card); padding: 10px; border-radius: 15px; border: 1px solid #334155; text-align: center; }
+        .sell-btn { background: #10b981; border: none; color: white; border-radius: 5px; padding: 5px 10px; margin-top: 5px; font-size: 10px; }
+        .buy-btn { background: #3b82f6; border: none; color: white; border-radius: 5px; padding: 5px 10px; font-size: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="profile" class="tab-content">
-        <h2 data-lang="profile_title">PROFILE</h2>
-        <div class="stat-card">
-            <div class="row"><span data-lang="name_label">👤 Name:</span><span id="u-name" class="val">...</span></div>
-            <div class="row"><span data-lang="balance_label">💰 Balance:</span><span id="balance" class="val">0</span></div>
-            <div class="row">
-                <span data-lang="lang_label">🌐 Language:</span>
-                <select id="lang-picker" class="lang-select" onchange="changeLang(this.value)" style="background:#334155; color:white; border:none; border-radius:5px;">
-                    <option value="en">English</option>
-                    <option value="uk">Українська</option>
-                    <option value="ru">Русский</option>
-                </select>
-            </div>
-        </div>
-        <div class="stat-card">
-            <p style="margin-bottom:10px" data-lang="promo_label">🎁 Promo:</p>
-            <div style="display:flex;">
-                <input type="text" id="promo-input" style="flex:1; background:#0f172a; border:1px solid #334155; color:white; padding:10px; border-radius:10px;">
-                <button onclick="applyPromo()" style="margin-left:5px; background:var(--primary); border:none; color:white; border-radius:10px; padding:0 15px;">OK</button>
-            </div>
-            <div id="promo-msg" style="font-size:10px; margin-top:5px;"></div>
-        </div>
-    </div>
-
     <div id="fishing" class="tab-content active">
         <h2 data-lang="lake_title">LAKE</h2>
         <div id="lake"><img src="poplavok.png" id="my-poplavok"></div>
-        <div id="status" style="margin-bottom: 20px; font-weight: bold; color: #94a3b8;" data-lang="ready_msg">Ready?</div>
+        <div id="status" style="margin-bottom:15px; color:#94a3b8" data-lang="ready_msg">Ready?</div>
         <button id="action-btn" class="game-btn" onclick="handleAction()" data-lang="cast_btn">CAST ROD</button>
     </div>
 
@@ -63,43 +39,51 @@
         <div id="inv-list" class="inv-grid"></div>
     </div>
 
+    <div id="market-tab" class="tab-content">
+        <h2 data-lang="nav_market">MARKET</h2>
+        <div id="market-list" style="width:100%"></div>
+    </div>
+
+    <div id="profile" class="tab-content">
+        <h2 data-lang="nav_profile">PROFILE</h2>
+        <div class="stat-card">
+            <div style="display:flex; justify-content:space-between"><span>💰 Balance:</span><span id="balance" style="color:var(--primary); font-weight:bold">0</span></div>
+        </div>
+        <select onchange="changeLang(this.value)" style="width:100%; padding:10px; border-radius:10px; background:#1e293b; color:white;">
+            <option value="en">English</option>
+            <option value="uk">Українська</option>
+        </select>
+    </div>
+
     <div class="nav">
-        <div class="nav-item" onclick="tab('profile', this)" data-lang="nav_profile">PROFILE</div>
-        <div class="nav-item active-nav" onclick="tab('fishing', this)" data-lang="nav_lake">LAKE</div>
-        <div class="nav-item" onclick="tab('inventory-tab', this); loadInventory();" data-lang="nav_inv">INVENTORY</div>
+        <div class="nav-item" onclick="tab('fishing', this)" data-lang="nav_lake">LAKE</div>
+        <div class="nav-item" onclick="tab('inventory-tab', this); loadInventory();" data-lang="nav_inv">INV</div>
+        <div class="nav-item" onclick="tab('market-tab', this); loadMarket();" data-lang="nav_market">MARKET</div>
+        <div class="nav-item" onclick="tab('profile', this)" data-lang="nav_profile">PROF</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         const UID = String(tg.initDataUnsafe?.user?.id || "000000");
-        let coins = 0, currentLang = 'en', isFishing = false, canPull = false, userInventory = [];
+        let coins = 0, currentLang = 'en', userInventory = [], isFishing = false, canPull = false;
 
         const i18n = {
-            en: { profile_title: "PROFILE", lake_title: "LAKE", nav_inv: "INVENTORY", name_label: "👤 Name:", balance_label: "💰 Balance:", lang_label: "🌐 Language:", promo_label: "🎁 Promo Code:", ready_msg: "Ready?", cast_btn: "CAST ROD", waiting: "WAITING...", pull_btn: "PULL!", fish_1: "Small Carp", fish_2: "Small Perch", fish_3: "BIG CARP", junk_1: "Bottle", junk_2: "Bag", empty: "Nothing caught...", nav_profile: "PROFILE", nav_lake: "LAKE", success: "Success!" },
-            uk: { profile_title: "ПРОФІЛЬ", lake_title: "ОЗЕРО", nav_inv: "ІНВЕНТАР", name_label: "👤 Нік:", balance_label: "💰 Баланс:", lang_label: "🌐 Мова:", promo_label: "🎁 Промокод:", ready_msg: "Готовий?", cast_btn: "ЗАКИНУТИ", waiting: "ЧЕКАЙ...", pull_btn: "ТЯГНИ!", fish_1: "Маленький карасик", fish_2: "Маленький окунь", fish_3: "ХАРОШИЙ КАРАСЬ", junk_1: "Бутилка", junk_2: "Пакет", empty: "Нічого не впіймав...", nav_profile: "ПРОФІЛЬ", nav_lake: "ОЗЕРО", success: "Успішно!" },
-            ru: { profile_title: "ПРОФИЛЬ", lake_title: "ОЗЕРО", nav_inv: "ИНВЕНТАРЬ", name_label: "👤 Ник:", balance_label: "💰 Баланс:", lang_label: "🌐 Язык:", promo_label: "🎁 Промокод:", ready_msg: "Готов?", cast_btn: "ЗАБРОСИТЬ", waiting: "ЖДИ...", pull_btn: "ТЯНИ!", fish_1: "Маленький карасик", fish_2: "Маленький окунь", fish_3: "ХОРОШИЙ КАРАСЬ", junk_1: "Бутылка", junk_2: "Пакет", empty: "Ничего не поймал...", nav_profile: "ПРОФИЛЬ", nav_lake: "ОЗЕРО", success: "Успешно!" }
+            en: { lake_title: "LAKE", nav_inv: "INV", nav_market: "MARKET", nav_profile: "PROFILE", cast_btn: "CAST ROD", pull_btn: "PULL!", ready_msg: "Ready?", fish_1: "Carp", fish_2: "Perch", fish_3: "GOLD FISH", junk_1: "Boot", junk_2: "Can" },
+            uk: { lake_title: "ОЗЕРО", nav_inv: "ІНВ", nav_market: "РИНОК", nav_profile: "ПРОФІЛЬ", cast_btn: "ЗАКИНУТИ", pull_btn: "ТЯГНИ!", ready_msg: "Готовий?", fish_1: "Карась", fish_2: "Окунь", fish_3: "ЗОЛОТА РИБА", junk_1: "Чобіт", junk_2: "Бляшанка" }
         };
 
         const LOOT = [
-            { id: "fish_1", price: 15, chance: 0.35 },
-            { id: "fish_2", price: 10, chance: 0.35 },
-            { id: "fish_3", price: 67, chance: 0.05 },
-            { id: "junk_1", price: -15, chance: 0.12 },
-            { id: "junk_2", price: -10, chance: 0.13 }
+            { id: "fish_1", chance: 0.4 }, { id: "fish_2", chance: 0.35 }, { id: "fish_3", chance: 0.05 }, { id: "junk_1", price: -10, chance: 0.1 }, { id: "junk_2", price: -5, chance: 0.1 }
         ];
 
         async function load() {
             const r = await fetch(`/api/get_user?user_id=${UID}`);
             const d = await r.json();
             if(!d.error) {
-                coins = d.coins;
-                currentLang = d.lang || 'en';
-                userInventory = d.inventory || [];
+                coins = d.coins; currentLang = d.lang || 'en'; userInventory = d.inventory || [];
                 document.getElementById('balance').innerText = coins;
-                document.getElementById('lang-picker').value = currentLang;
                 updateLangUI();
             }
-            document.getElementById('u-name').innerText = d.name || "Fisherman";
         }
 
         function updateLangUI() {
@@ -109,64 +93,70 @@
             });
         }
 
-        async function changeLang(val) {
-            currentLang = val; updateLangUI();
-            await fetch('/api/save_user', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ user_id: UID, lang: val }) });
-        }
-
-        function loadInventory() {
-            const list = document.getElementById('inv-list');
-            list.innerHTML = "";
-            const counts = {};
-            userInventory.forEach(item => counts[item.id] = (counts[item.id] || 0) + 1);
-            
-            for (const [id, count] of Object.entries(counts)) {
-                if(id.startsWith('fish')) {
-                    list.innerHTML += `<div class="inv-item"><b>${i18n[currentLang][id]}</b><br>Qty: ${count}</div>`;
-                }
-            }
-        }
-
-        async function handleAction() {
-            const btn = document.getElementById('action-btn'), st = document.getElementById('status'), pop = document.getElementById('my-poplavok'), t = i18n[currentLang];
-            if(!isFishing) {
-                isFishing = true; st.innerText = t.waiting; btn.innerText = "..."; btn.disabled = true;
-                pop.style.left = Math.random() * 200 + "px"; pop.style.top = Math.random() * 200 + "px"; pop.style.display = "block";
-                setTimeout(() => { canPull = true; btn.disabled = false; btn.innerText = t.pull_btn; pop.classList.add("bite"); tg.HapticFeedback.notificationOccurred('warning'); }, 2000 + Math.random() * 2000);
-            } else if(canPull) {
-                isFishing = false; canPull = false; pop.style.display = "none"; pop.classList.remove("bite");
-                let rand = Math.random(), cumul = 0, caught = null;
-                for (let item of LOOT) { cumul += item.chance; if (rand <= cumul) { caught = item; break; } }
-
-                if (caught) {
-                    if (caught.id.startsWith('junk')) {
-                        coins += caught.price; st.innerText = `${t[caught.id]} (${caught.price})`;
-                    } else {
-                        st.innerText = `${t[caught.id]}! (In Inventory)`;
-                        userInventory.push({id: caught.id});
-                        await fetch('/api/add_to_inventory', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ user_id: UID, item_id: caught.id }) });
-                    }
-                } else { st.innerText = t.empty; }
-
-                if (coins < 0) coins = 0;
-                document.getElementById('balance').innerText = coins; btn.innerText = t.cast_btn;
-                fetch('/api/save_user', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ user_id: UID, coins: coins }) });
-            }
-        }
-
-        async function applyPromo() {
-            const inp = document.getElementById('promo-input'), msg = document.getElementById('promo-msg'), code = inp.value.trim();
-            const r = await fetch('/api/use_promo', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ user_id: UID, code: code }) });
-            const d = await r.json();
-            if(d.ok) { coins += d.bonus; document.getElementById('balance').innerText = coins; msg.innerText = i18n[currentLang].success; inp.value = ""; }
-            else { msg.innerText = "Error!"; }
-        }
-
         function tab(id, el) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
             el.classList.add('active-nav');
+        }
+
+        async function handleAction() {
+            const btn = document.getElementById('action-btn'), st = document.getElementById('status'), pop = document.getElementById('my-poplavok'), t = i18n[currentLang];
+            if(!isFishing) {
+                isFishing = true; st.innerText = "..."; btn.disabled = true;
+                pop.style.left = Math.random() * 180 + "px"; pop.style.top = Math.random() * 180 + "px"; pop.style.display = "block";
+                setTimeout(() => { canPull = true; btn.disabled = false; btn.innerText = t.pull_btn; pop.classList.add("bite"); tg.HapticFeedback.impactOccurred('heavy'); }, 2000 + Math.random() * 2000);
+            } else if(canPull) {
+                isFishing = false; canPull = false; pop.style.display = "none"; pop.classList.remove("bite");
+                let rand = Math.random(), cumul = 0, caught = null;
+                for (let item of LOOT) { cumul += item.chance; if (rand <= cumul) { caught = item; break; } }
+                if (caught) {
+                    if (caught.id.startsWith('junk')) {
+                        coins += caught.price; st.innerText = `${t[caught.id]}!`;
+                    } else {
+                        st.innerText = `${t[caught.id]}! (Saved)`;
+                        userInventory.push({id: caught.id});
+                        await fetch('/api/add_to_inventory', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ user_id: UID, item_id: caught.id }) });
+                    }
+                }
+                document.getElementById('balance').innerText = coins; btn.innerText = t.cast_btn;
+                fetch('/api/save_user', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ user_id: UID, coins: coins }) });
+            }
+        }
+
+        function loadInventory() {
+            const list = document.getElementById('inv-list'); list.innerHTML = "";
+            userInventory.forEach((item, index) => {
+                list.innerHTML += `<div class="inv-item"><b>${i18n[currentLang][item.id] || item.id}</b><br><button class="sell-btn" onclick="sellItem('${item.id}', ${index})">Sell</button></div>`;
+            });
+        }
+
+        async function sellItem(id, idx) {
+            const price = prompt("Enter price in coins:");
+            if(!price || isNaN(price)) return;
+            const r = await fetch('/api/list_item', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ user_id: UID, item_id: id, price: price }) });
+            if((await r.json()).ok) { userInventory.splice(idx, 1); loadInventory(); alert("Listed!"); }
+        }
+
+        async function loadMarket() {
+            const list = document.getElementById('market-list'); list.innerHTML = "Loading...";
+            const r = await fetch('/api/get_market');
+            const lots = await r.json();
+            list.innerHTML = "";
+            lots.forEach(lot => {
+                if(lot.seller_id == UID) return;
+                list.innerHTML += `<div class="stat-card" style="display:flex; justify-content:space-between; align-items:center">
+                    <div><b>${i18n[currentLang][lot.item_id] || lot.item_id}</b><br><small>by ${lot.seller_name}</small></div>
+                    <div><b style="color:var(--primary)">${lot.price} 💰</b> <button class="buy-btn" onclick="buyItem(${JSON.stringify(lot).replace(/"/g, '&quot;')})">Buy</button></div>
+                </div>`;
+            });
+        }
+
+        async function buyItem(lot) {
+            if(coins < lot.price) return alert("No coins!");
+            const r = await fetch('/api/buy_item', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ user_id: UID, lot: lot }) });
+            const d = await r.json();
+            if(d.ok) { alert("Bought!"); load(); loadMarket(); } else { alert(d.msg); }
         }
 
         tg.expand(); load();
