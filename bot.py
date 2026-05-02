@@ -12,11 +12,9 @@ WEBAPP_URL = os.getenv("WEBAPP_URL")
 MONGO_URL = os.getenv("MONGO_URL")
 PORT = int(os.getenv("PORT", 8080))
 
-# Список каналів для перевірки
-# ПРИМІТКА: Для приватного каналу (друге посилання) ID має починатися на -100...
+# ТЕПЕР ТУТ ТІЛЬКИ ОДИН КАНАЛ
 CHANNELS = [
-    {"url": "https://t.me/vexoo_hub", "id": "@vexoo_hub"},
-    {"url": "https://t.me/+zv5JH3cSgAJlOTYy", "id": -1002476566236} # Обов'язково перевірте цей ID
+    {"url": "https://t.me/vexoo_hub", "id": "@vexoo_hub"}
 ]
 
 bot = Bot(token=TOKEN)
@@ -32,12 +30,10 @@ async def check_subscription(user_id):
     for channel in CHANNELS:
         try:
             member = await bot.get_chat_member(chat_id=channel["id"], user_id=user_id)
-            # Дозволені статуси
             if member.status not in ["member", "administrator", "creator"]:
-                print(f"Користувач {user_id} не підписаний на {channel['id']} (статус: {member.status})")
                 return False
         except Exception as e:
-            print(f"ПОМИЛКА ПЕРЕВІРКИ: Канал {channel['id']} не знайдено або бот не адмін. Помилка: {e}")
+            print(f"ПОМИЛКА ПЕРЕВІРКИ: {e}")
             return False
     return True
 
@@ -49,12 +45,11 @@ async def start_handler(message: types.Message):
 
     if not is_subscribed:
         kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="📢 Підписатися на Hub", url=CHANNELS[0]["url"])],
-            [InlineKeyboardButton(text="📢 Підписатися на Приватний канал", url=CHANNELS[1]["url"])],
+            [InlineKeyboardButton(text="📢 Підписатися на Vexoo Hub", url=CHANNELS[0]["url"])],
             [InlineKeyboardButton(text="✅ Я підписався", callback_data="check_sub")]
         ])
         await message.answer(
-            "👋 Вітаємо! Щоб отримати доступ до ігор та бонусів, підпишіться на наші канали:",
+            "👋 Привіт! Щоб грати, підпишись на наш канал:",
             reply_markup=kb
         )
         return
@@ -67,15 +62,13 @@ async def process_check_sub(callback: types.CallbackQuery):
     is_subscribed = await check_subscription(callback.from_user.id)
     
     if is_subscribed:
-        await callback.answer("Чудово! Доступ відкрито. 🎉")
-        # Видаляємо старе повідомлення і показуємо меню
+        await callback.answer("Доступ відкрито! 🎉")
         await callback.message.delete()
         await show_main_menu(callback.message)
     else:
-        await callback.answer("Ви підписалися не на всі канали! ❌ Перевірте підписку та спробуйте ще раз.", show_alert=True)
+        await callback.answer("Ти ще не підписався! ❌", show_alert=True)
 
 async def show_main_menu(message: types.Message):
-    # Визначаємо ID (працює і для звичайних повідомлень, і для callback)
     u_id = str(message.chat.id)
     full_name = message.chat.full_name or "Гравець"
     
@@ -88,7 +81,7 @@ async def show_main_menu(message: types.Message):
         [InlineKeyboardButton(text="♟️ Грати в Шахи", web_app=WebAppInfo(url=f"{WEBAPP_URL}/chess.html"))]
     ])
     
-    text = f"Привіт, {full_name}! 👋\nВаш баланс: 100 💰\n\nОберіть гру:"
+    text = f"Привіт, {full_name}! 👋\nОбирай гру:"
     await bot.send_message(message.chat.id, text, reply_markup=kb)
 
 # --- API ---
