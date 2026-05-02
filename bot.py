@@ -6,110 +6,114 @@ from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 from aiohttp import web
 from motor.motor_asyncio import AsyncIOMotorClient
 
-# --- Конфігурація з Railway Variables ---
+# --- НАЛАШТУВАННЯ ---
 TOKEN = os.getenv("BOT_TOKEN")
-WEBAPP_URL = os.getenv("WEBAPP_URL")
+WEBAPP_URL = os.getenv("WEBAPP_URL") 
 MONGO_URL = os.getenv("MONGO_URL")
 PORT = int(os.getenv("PORT", 8080))
+
+# Список каналів для перевірки (ID або Username)
+CHANNELS = [
+    {"url": "https://t.me/vexoo_hub", "id": "@vexoo_hub"},
+    {"url": "https://t.me/+zv5JH3cSgAJlOTYy", "id": -1002081515286} # Приклад ID для приватного каналу
+]
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# --- Підключення до MongoDB Atlas ---
+# MongoDB
 client = AsyncIOMotorClient(MONGO_URL, tlsAllowInvalidCertificates=True)
 db = client["fish_cash_game_prod"]
 users_col = db["users"]
 
+# --- ФУНКЦІЯ ПЕРЕВІРКИ ПІДПИСКИ ---
+async def check_subscription(user_id):
+    for channel in CHANNELS:
+        try:
+            member = await bot.get_chat_member(chat_id=channel["id"], user_id=user_id)
+            if member.status in ["left", "kicked"]:
+                return False
+        except Exception:
+            # Якщо бот не адмін у каналі, перевірка не спрацює
+            return False
+    return True
+
+# --- ОБРОБНИК КОМАНДИ /START ---
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
-    user_id = str(message.from_user.id)
-    # Покращена логіка отримання імені
-    full_name = message.from_user.full_name or message.from_user.username or "Гравець"
-    
-    # Обробка реферального посилання
-    args = message.text.split()
-    referrer_id = args[1] if len(args) > 1 else None
+    user_id = message.from_user.id
+    is_subscribed = await check_subscription(user_id)
 
+    if not is_subscribed:
+        # Якщо не підписаний — показуємо посилання та кнопку перевірки
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="📢 Підписатися на Hub", url=CHANNELS[0]["url"])],
+            [InlineKeyboardButton(text="📢 Підписатися на Канал 2", url=CHANNELS[1]["url"])],
+            [InlineKeyboardButton(text="✅ Я підписався", callback_data="check_sub")]
+        ])
+        await message.answer("Щоб почати гру, підпишіться на наші канали:", reply_markup=kb)
+        return
+
+    # Якщо підписаний — показуємо основне меню
+    await show_main_menu(message)
+
+# --- ОБРОБНИК КНОПКИ "Я ПІДПИСАВСЯ" ---
+@dp.callback_query(lambda c: c.data == "check_sub")
+async def process_check_sub(callback: types.CallbackQuery):
+    is_subscribed = await check_subscription(callback.from_user.id)
+    
+    if is_subscribed:
+        await callback.answer("Дякуємо за підписку! 🎉")
+        await show_main_menu(callback.message)
+    else:
+        await callback.answer("Ви підписалися не на всі канали! ❌", show_alert=True)
+
+async def show_main_menu(message: types.Message):
+    user_id = str(message.chat.id)
+    full_name = message.chat.full_name or "Гравець"
+    
+    # Логіка реєстрації в БД (як раніше)
     user = await users_col.find_one({"user_id": user_id})
     if not user:
-        # Створення нового профілю (100 монет старт)
-        await users_col.insert_one({
-            "user_id": user_id, 
-            "coins": 100, 
-            "name": full_name
-        })
-        
-        # Нарахування бонусу тому, хто запросив
-        if referrer_id and referrer_id != user_id:
-            await users_col.update_one({"user_id": referrer_id}, {"$inc": {"coins": 50}})
-            try:
-                await bot.send_message(referrer_id, f"💎 Твій друг {full_name} приєднався! Тобі нараховано +50 монет!")
-            except: 
-                pass
+        await users_col.insert_one({"user_id": user_id, "coins": 100, "name": full_name})
 
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🎣 Грати в Fish Cash", web_app=WebAppInfo(url=WEBAPP_URL))]
+        [InlineKeyboardButton(text="🎣 Грати в Fish Cash", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton(text="♟️ Грати в Шахи", web_app=WebAppInfo(url=f"{WEBAPP_URL}/chess.html"))]
     ])
     
-    welcome_text = f"Привіт, {full_name}! 🌊\nГотовий наловити на ламборгіні?\n\nТвій ID: {user_id}"
-    
-    # Спроба відправити фото welcome.jpg, якщо воно є в репозиторії
-    try:
-        photo = FSInputFile("welcome.jpg")
-        await message.answer_photo(photo=photo, caption=welcome_text, reply_markup=kb)
-    except Exception:
-        await message.answer(welcome_text, reply_markup=kb)
+    await message.answer(f"Привіт, {full_name}! Обирай гру:", reply_markup=kb)
 
-# --- API СЕРВЕР ДЛЯ ГРИ ---
-
+# --- API ТА СЕРВЕР (БЕЗ ЗМІН) ---
 async def get_balance(request):
-    """Отримання даних гравця для WebApp"""
     user_id = request.query.get("user_id")
     user = await users_col.find_one({"user_id": str(user_id)})
     if user:
-        user.pop("_id", None)  # Видаляємо службовий ID бази
+        user.pop("_id", None)
         return web.json_response(user)
     return web.json_response({"error": "not_found"}, status=404)
 
 async def save_balance(request):
-    """Збереження балансу після вилову"""
-    try:
-        data = await request.json()
-        await users_col.update_one(
-            {"user_id": str(data.get("user_id"))}, 
-            {"$set": {"coins": int(data.get("coins"))}}, 
-            upsert=True
-        )
-        return web.json_response({"ok": True})
-    except Exception:
-        return web.json_response({"ok": False}, status=500)
+    data = await request.json()
+    await users_col.update_one({"user_id": str(data.get("user_id"))}, {"$set": {"coins": int(data.get("coins"))}}, upsert=True)
+    return web.json_response({"ok": True})
 
-# --- МАРШРУТИ ДЛЯ ФАЙЛІВ ---
-async def handle_index(request): 
-    return web.FileResponse('index.html')
+async def handle_index(request): return web.FileResponse('index.html')
+async def handle_chess(request): return web.FileResponse('chess.html')
+async def handle_poplavok(request): return web.FileResponse('poplavok.png')
 
-async def handle_poplavok(request): 
-    return web.FileResponse('poplavok.png')
-
-# --- ЗАПУСК ДОДАТКУ ---
 app = web.Application()
 app.router.add_get('/', handle_index)
+app.router.add_get('/chess.html', handle_chess)
 app.router.add_get('/poplavok.png', handle_poplavok)
 app.router.add_get('/api/get_balance', get_balance)
 app.router.add_post('/api/save_balance', save_balance)
 
 async def main():
-    # Запуск веб-сервера на порту Railway
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", PORT)
-    await site.start()
-    
-    # Запуск бота (Polling)
+    await web.TCPSite(runner, "0.0.0.0", PORT).start()
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    try:
-        asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
-        pass
+    asyncio.run(main())
