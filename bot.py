@@ -6,30 +6,21 @@ from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 from aiohttp import web
 from motor.motor_asyncio import AsyncIOMotorClient
 
-# --- НАЛАШТУВАННЯ ---
 TOKEN = os.getenv("BOT_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL") 
 MONGO_URL = os.getenv("MONGO_URL")
 PORT = int(os.getenv("PORT", 8080))
 
-# Канал для обов'язкової підписки
 CHANNELS = [{"url": "https://t.me/vexoo_hub", "id": "@vexoo_hub"}]
-
-# База промокодів
-PROMO_CODES = {
-    "hello": 100,
-    "News": 67
-}
+PROMO_CODES = {"hello": 100, "News": 67}
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# MongoDB
 client = AsyncIOMotorClient(MONGO_URL, tlsAllowInvalidCertificates=True)
 db = client["fish_cash_test_db"]
 users_col = db["users"]
 
-# --- ПЕРЕВІРКА ПІДПИСКИ ---
 async def check_subscription(user_id):
     for channel in CHANNELS:
         try:
@@ -40,45 +31,44 @@ async def check_subscription(user_id):
             return False
     return False
 
-# --- ОБРОБНИКИ ТЕЛЕГРАМ ---
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
-    user_id = message.from_user.id
-    is_subscribed = await check_subscription(user_id)
-
-    if not is_subscribed:
+    if not await check_subscription(message.from_user.id):
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="📢 Підписатися на Hub", url=CHANNELS[0]["url"])],
             [InlineKeyboardButton(text="✅ Перевірити підписку", callback_data="check_sub")]
         ])
-        await message.answer("🛠 **TEST BOT**\nПідпишись на канал, щоб почати тест:", reply_markup=kb)
+        await message.answer("🛠 **TEST MODE**\nПідпишись на канал для входу:", reply_markup=kb)
         return
     await show_main_menu(message)
 
 @dp.callback_query(lambda c: c.data == "check_sub")
 async def process_check_sub(callback: types.CallbackQuery):
     if await check_subscription(callback.from_user.id):
-        await callback.answer("Доступ дозволено! ✅")
         await callback.message.delete()
         await show_main_menu(callback.message)
     else:
-        await callback.answer("Ти не підписався! ❌", show_alert=True)
+        await callback.answer("❌ Немає підписки!", show_alert=True)
 
 async def show_main_menu(message: types.Message):
     u_id = str(message.chat.id)
     user = await users_col.find_one({"user_id": u_id})
     if not user:
-        await users_col.insert_one({"user_id": u_id, "coins": 1000, "name": message.chat.full_name, "used_promos": []})
-
+        await users_col.insert_one({
+            "user_id": u_id, 
+            "coins": 1000, 
+            "name": message.chat.full_name or "Рибалка",
+            "used_promos": []
+        })
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🎣 Тестувати Fish Cash", web_app=WebAppInfo(url=WEBAPP_URL))]
+        [InlineKeyboardButton(text="🎣 Зайти в Озеро", web_app=WebAppInfo(url=WEBAPP_URL))]
     ])
-    await bot.send_message(message.chat.id, "🎮 Вітаємо у тестовій версії!\nТисни кнопку нижче:", reply_markup=kb)
+    await bot.send_message(message.chat.id, "🎮 Гра готова до тесту!", reply_markup=kb)
 
-# --- API ЕНДПОЇНТИ ---
 async def get_balance(request):
     user_id = request.query.get("user_id")
     user = await users_col.find_one({"user_id": str(user_id)})
+    if user: user.pop("_id", None)
     return web.json_response(user if user else {"error": "not_found"})
 
 async def save_balance(request):
@@ -97,7 +87,6 @@ async def use_promo(request):
         return web.json_response({"ok": True, "bonus": PROMO_CODES[code]})
     return web.json_response({"ok": False, "message": "Невірний код!"})
 
-# --- СТАТИКА ---
 async def handle_index(request): return web.FileResponse('index.html')
 async def handle_poplavok(request): return web.FileResponse('poplavok.png')
 
