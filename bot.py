@@ -12,10 +12,11 @@ WEBAPP_URL = os.getenv("WEBAPP_URL")
 MONGO_URL = os.getenv("MONGO_URL")
 PORT = int(os.getenv("PORT", 8080))
 
-# Список каналів для перевірки (ID або Username)
+# Список каналів для перевірки
+# ПРИМІТКА: Для приватного каналу (друге посилання) ID має починатися на -100...
 CHANNELS = [
     {"url": "https://t.me/vexoo_hub", "id": "@vexoo_hub"},
-    {"url": "https://t.me/+zv5JH3cSgAJlOTYy", "id": -1002081515286} # Приклад ID для приватного каналу
+    {"url": "https://t.me/+zv5JH3cSgAJlOTYy", "id": -1002476566236} # Обов'язково перевірте цей ID
 ]
 
 bot = Bot(token=TOKEN)
@@ -31,10 +32,12 @@ async def check_subscription(user_id):
     for channel in CHANNELS:
         try:
             member = await bot.get_chat_member(chat_id=channel["id"], user_id=user_id)
-            if member.status in ["left", "kicked"]:
+            # Дозволені статуси
+            if member.status not in ["member", "administrator", "creator"]:
+                print(f"Користувач {user_id} не підписаний на {channel['id']} (статус: {member.status})")
                 return False
-        except Exception:
-            # Якщо бот не адмін у каналі, перевірка не спрацює
+        except Exception as e:
+            print(f"ПОМИЛКА ПЕРЕВІРКИ: Канал {channel['id']} не знайдено або бот не адмін. Помилка: {e}")
             return False
     return True
 
@@ -45,46 +48,50 @@ async def start_handler(message: types.Message):
     is_subscribed = await check_subscription(user_id)
 
     if not is_subscribed:
-        # Якщо не підписаний — показуємо посилання та кнопку перевірки
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="📢 Підписатися на Hub", url=CHANNELS[0]["url"])],
-            [InlineKeyboardButton(text="📢 Підписатися на Канал 2", url=CHANNELS[1]["url"])],
+            [InlineKeyboardButton(text="📢 Підписатися на Приватний канал", url=CHANNELS[1]["url"])],
             [InlineKeyboardButton(text="✅ Я підписався", callback_data="check_sub")]
         ])
-        await message.answer("Щоб почати гру, підпишіться на наші канали:", reply_markup=kb)
+        await message.answer(
+            "👋 Вітаємо! Щоб отримати доступ до ігор та бонусів, підпишіться на наші канали:",
+            reply_markup=kb
+        )
         return
 
-    # Якщо підписаний — показуємо основне меню
     await show_main_menu(message)
 
-# --- ОБРОБНИК КНОПКИ "Я ПІДПИСАВСЯ" ---
+# --- ОБРОБНИК КНОПКИ ПЕРЕВІРКИ ---
 @dp.callback_query(lambda c: c.data == "check_sub")
 async def process_check_sub(callback: types.CallbackQuery):
     is_subscribed = await check_subscription(callback.from_user.id)
     
     if is_subscribed:
-        await callback.answer("Дякуємо за підписку! 🎉")
+        await callback.answer("Чудово! Доступ відкрито. 🎉")
+        # Видаляємо старе повідомлення і показуємо меню
+        await callback.message.delete()
         await show_main_menu(callback.message)
     else:
-        await callback.answer("Ви підписалися не на всі канали! ❌", show_alert=True)
+        await callback.answer("Ви підписалися не на всі канали! ❌ Перевірте підписку та спробуйте ще раз.", show_alert=True)
 
 async def show_main_menu(message: types.Message):
-    user_id = str(message.chat.id)
+    # Визначаємо ID (працює і для звичайних повідомлень, і для callback)
+    u_id = str(message.chat.id)
     full_name = message.chat.full_name or "Гравець"
     
-    # Логіка реєстрації в БД (як раніше)
-    user = await users_col.find_one({"user_id": user_id})
+    user = await users_col.find_one({"user_id": u_id})
     if not user:
-        await users_col.insert_one({"user_id": user_id, "coins": 100, "name": full_name})
+        await users_col.insert_one({"user_id": u_id, "coins": 100, "name": full_name})
 
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🎣 Грати в Fish Cash", web_app=WebAppInfo(url=WEBAPP_URL))],
         [InlineKeyboardButton(text="♟️ Грати в Шахи", web_app=WebAppInfo(url=f"{WEBAPP_URL}/chess.html"))]
     ])
     
-    await message.answer(f"Привіт, {full_name}! Обирай гру:", reply_markup=kb)
+    text = f"Привіт, {full_name}! 👋\nВаш баланс: 100 💰\n\nОберіть гру:"
+    await bot.send_message(message.chat.id, text, reply_markup=kb)
 
-# --- API ТА СЕРВЕР (БЕЗ ЗМІН) ---
+# --- API ---
 async def get_balance(request):
     user_id = request.query.get("user_id")
     user = await users_col.find_one({"user_id": str(user_id)})
@@ -94,9 +101,16 @@ async def get_balance(request):
     return web.json_response({"error": "not_found"}, status=404)
 
 async def save_balance(request):
-    data = await request.json()
-    await users_col.update_one({"user_id": str(data.get("user_id"))}, {"$set": {"coins": int(data.get("coins"))}}, upsert=True)
-    return web.json_response({"ok": True})
+    try:
+        data = await request.json()
+        await users_col.update_one(
+            {"user_id": str(data.get("user_id"))}, 
+            {"$set": {"coins": int(data.get("coins"))}}, 
+            upsert=True
+        )
+        return web.json_response({"ok": True})
+    except:
+        return web.json_response({"ok": False}, status=500)
 
 async def handle_index(request): return web.FileResponse('index.html')
 async def handle_chess(request): return web.FileResponse('chess.html')
@@ -116,4 +130,7 @@ async def main():
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        pass
