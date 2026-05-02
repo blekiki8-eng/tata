@@ -6,14 +6,16 @@ from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 from aiohttp import web
 from motor.motor_asyncio import AsyncIOMotorClient
 
+# --- НАЛАШТУВАННЯ ---
 TOKEN = os.getenv("BOT_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL") 
 MONGO_URL = os.getenv("MONGO_URL")
 PORT = int(os.getenv("PORT", 8080))
 
+# Канал для обов'язкової підписки
 CHANNELS = [{"url": "https://t.me/vexoo_hub", "id": "@vexoo_hub"}]
 
-# Список промокодів
+# База промокодів
 PROMO_CODES = {
     "hello": 100,
     "News": 67
@@ -22,61 +24,89 @@ PROMO_CODES = {
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
+# MongoDB
 client = AsyncIOMotorClient(MONGO_URL, tlsAllowInvalidCertificates=True)
 db = client["fish_cash_test_db"]
 users_col = db["users"]
 
-# --- API ДЛЯ ПРОМОКОДІВ ---
-async def use_promo(request):
-    try:
-        data = await request.json()
-        u_id = str(data.get("user_id"))
-        code = data.get("code")
+# --- ПЕРЕВІРКА ПІДПИСКИ ---
+async def check_subscription(user_id):
+    for channel in CHANNELS:
+        try:
+            member = await bot.get_chat_member(chat_id=channel["id"], user_id=user_id)
+            if member.status in ["member", "administrator", "creator"]:
+                return True
+        except Exception:
+            return False
+    return False
 
-        if code in PROMO_CODES:
-            bonus = PROMO_CODES[code]
-            # Перевіряємо, чи не використовував вже (додаємо список використаних кодів користувачу)
-            user = await users_col.find_one({"user_id": u_id})
-            used_promos = user.get("used_promos", [])
+# --- ОБРОБНИКИ ТЕЛЕГРАМ ---
+@dp.message(CommandStart())
+async def start_handler(message: types.Message):
+    user_id = message.from_user.id
+    is_subscribed = await check_subscription(user_id)
 
-            if code in used_promos:
-                return web.json_response({"ok": False, "message": "Вже використано!"})
+    if not is_subscribed:
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="📢 Підписатися на Hub", url=CHANNELS[0]["url"])],
+            [InlineKeyboardButton(text="✅ Перевірити підписку", callback_data="check_sub")]
+        ])
+        await message.answer("🛠 **TEST BOT**\nПідпишись на канал, щоб почати тест:", reply_markup=kb)
+        return
+    await show_main_menu(message)
 
-            await users_col.update_one(
-                {"user_id": u_id},
-                {
-                    "$inc": {"coins": bonus},
-                    "$push": {"used_promos": code}
-                }
-            )
-            return web.json_response({"ok": True, "bonus": bonus})
-        else:
-            return web.json_response({"ok": False, "message": "Невірний код!"})
-    except:
-        return web.json_response({"ok": False}, status=500)
+@dp.callback_query(lambda c: c.data == "check_sub")
+async def process_check_sub(callback: types.CallbackQuery):
+    if await check_subscription(callback.from_user.id):
+        await callback.answer("Доступ дозволено! ✅")
+        await callback.message.delete()
+        await show_main_menu(callback.message)
+    else:
+        await callback.answer("Ти не підписався! ❌", show_alert=True)
 
-# --- РЕШТА ФУНКЦІЙ (БЕЗ ЗМІН) ---
+async def show_main_menu(message: types.Message):
+    u_id = str(message.chat.id)
+    user = await users_col.find_one({"user_id": u_id})
+    if not user:
+        await users_col.insert_one({"user_id": u_id, "coins": 1000, "name": message.chat.full_name, "used_promos": []})
+
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🎣 Тестувати Fish Cash", web_app=WebAppInfo(url=WEBAPP_URL))]
+    ])
+    await bot.send_message(message.chat.id, "🎮 Вітаємо у тестовій версії!\nТисни кнопку нижче:", reply_markup=kb)
+
+# --- API ЕНДПОЇНТИ ---
 async def get_balance(request):
     user_id = request.query.get("user_id")
     user = await users_col.find_one({"user_id": str(user_id)})
-    if user:
-        user.pop("_id", None)
-        return web.json_response(user)
-    return web.json_response({"error": "not_found"}, status=404)
+    return web.json_response(user if user else {"error": "not_found"})
 
 async def save_balance(request):
     data = await request.json()
     await users_col.update_one({"user_id": str(data.get("user_id"))}, {"$set": {"coins": int(data.get("coins"))}}, upsert=True)
     return web.json_response({"ok": True})
 
+async def use_promo(request):
+    data = await request.json()
+    u_id, code = str(data.get("user_id")), data.get("code")
+    if code in PROMO_CODES:
+        user = await users_col.find_one({"user_id": u_id})
+        if code in user.get("used_promos", []):
+            return web.json_response({"ok": False, "message": "Вже використано!"})
+        await users_col.update_one({"user_id": u_id}, {"$inc": {"coins": PROMO_CODES[code]}, "$push": {"used_promos": code}})
+        return web.json_response({"ok": True, "bonus": PROMO_CODES[code]})
+    return web.json_response({"ok": False, "message": "Невірний код!"})
+
+# --- СТАТИКА ---
 async def handle_index(request): return web.FileResponse('index.html')
 async def handle_poplavok(request): return web.FileResponse('poplavok.png')
 
 app = web.Application()
 app.router.add_get('/', handle_index)
+app.router.add_get('/poplavok.png', handle_poplavok)
 app.router.add_get('/api/get_balance', get_balance)
 app.router.add_post('/api/save_balance', save_balance)
-app.router.add_post('/api/use_promo', use_promo) # Новий маршрут
+app.router.add_post('/api/use_promo', use_promo)
 
 async def main():
     runner = web.AppRunner(app)
