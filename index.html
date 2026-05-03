@@ -8,16 +8,16 @@
     <style>
         :root { --primary: #00d2ff; --bg: #0f172a; --card: #1e293b; --shelf: #3e2723; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 90px; }
-        .tab-content { display: none; flex-direction: column; align-items: center; padding: 15px; }
+        .tab-content { display: none; flex-direction: column; align-items: center; padding: 15px; min-height: 100vh; box-sizing: border-box; }
         .active { display: flex; }
         
-        #lake { width: 260px; height: 260px; background: radial-gradient(circle, #00f2fe, #004e92); border-radius: 50%; margin: 20px; border: 4px solid #1e293b; position: relative; }
-        #poplavok { width: 40px; height: 40px; position: absolute; display: none; }
+        #lake { width: 260px; height: 260px; background: radial-gradient(circle, #00f2fe, #004e92); border-radius: 50%; margin: 20px; border: 4px solid #1e293b; position: relative; overflow: hidden; }
+        #poplavok { width: 40px; height: 40px; position: absolute; display: none; transition: all 0.5s ease; z-index: 10; }
         .bite { animation: shake 0.3s infinite; }
         @keyframes shake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 
         .shelf { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: var(--shelf); padding: 10px; border-radius: 10px; width: 100%; box-sizing: border-box; }
-        .slot { background: var(--card); padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; }
+        .slot { background: var(--card); padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; border: 1px solid #334155; }
 
         .market-slot { background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
         .my-lot { border: 1px solid var(--primary); }
@@ -30,18 +30,20 @@
         .nav-item { flex: 1; text-align: center; padding: 15px; color: #94a3b8; font-size: 10px; }
         .active-nav { color: var(--primary); font-weight: bold; }
         
-        .main-btn { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-weight: bold; }
-        .btn-sml { border: none; color: white; padding: 5px; border-radius: 5px; font-size: 9px; margin-top: 4px; width: 100%; }
-        .copy-row { display: flex; gap: 5px; margin-top: 10px; }
-        .input-box { background: #0f172a; border: 1px solid #334155; color: white; padding: 10px; border-radius: 10px; flex: 1; font-size: 10px; }
+        .main-btn { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-weight: bold; width: 80%; }
+        .btn-sml { border: none; color: white; padding: 5px; border-radius: 5px; font-size: 9px; margin-top: 4px; width: 100%; cursor: pointer; }
+        .copy-row { display: flex; gap: 5px; margin-top: 10px; width: 100%; }
+        .input-box { background: #0f172a; border: 1px solid #334155; color: white; padding: 10px; border-radius: 10px; flex: 1; font-size: 11px; }
     </style>
 </head>
 <body>
 
     <div id="fishing-tab" class="tab-content active">
         <h2 data-lang="nav_lake">LAKE</h2>
-        <div id="lake"><img src="poplavok.png" id="poplavok"></div>
-        <div id="status" data-lang="ready">Ready?</div>
+        <div id="lake">
+            <img src="poplavok.png" id="poplavok">
+        </div>
+        <div id="status" data-lang="ready" style="margin-bottom:15px">Ready?</div>
         <button id="action-btn" class="main-btn" onclick="startFishing()">CAST ROD</button>
     </div>
 
@@ -63,14 +65,19 @@
 
     <div id="profile-tab" class="tab-content">
         <h2 data-lang="nav_prof">USER</h2>
-        <div style="background:var(--card); padding:15px; border-radius:15px; width:100%; box-sizing:border-box;">
-            <p>💰 <span data-lang="balance">Balance</span>: <b id="balance">0</b></p>
+        <div style="background:var(--card); padding:20px; border-radius:15px; width:100%; box-sizing:border-box; border: 1px solid #334155;">
+            <p>👤 <span data-lang="name">Name</span>: <b id="u-name">Loading...</b></p>
+            <p>🆔 ID: <b id="u-id">000000</b></p>
+            <p>💰 <span data-lang="balance">Balance</span>: <b id="balance" style="color:var(--primary)">0</b></p>
+            
+            <label style="font-size: 12px; color: #94a3b8;">Referral Link:</label>
             <div class="copy-row">
                 <input id="ref-link" readonly class="input-box">
                 <button class="filter-btn" onclick="copyRef()" style="background:#10b981">Copy</button>
                 <button class="filter-btn" onclick="shareRef()" style="background:var(--primary)">Share</button>
             </div>
-            <select onchange="changeLang(this.value)" id="lang-sel" class="input-box" style="margin-top:15px; width:100%">
+
+            <select onchange="changeLang(this.value)" id="lang-sel" class="input-box" style="margin-top:20px; width:100%">
                 <option value="en">English</option>
                 <option value="uk">Українська</option>
             </select>
@@ -87,11 +94,11 @@
     <script>
         const tg = window.Telegram.WebApp;
         const UID = String(tg.initDataUnsafe?.user?.id || "000000");
-        let coins = 0, inv = [], lang = 'en', isFishing = false, currentFilter = 'all';
+        let coins = 0, inv = [], lang = 'uk', isFishing = false, currentFilter = 'all';
 
         const i18n = {
-            en: { cast: "CAST ROD", pull: "CATCH!", ready: "Ready?", wait: "Wait...", bite: "BITE!", fish_small: "Small Fish", fish_karas: "Karas", fish_pike: "PIKE", balance: "Balance", nav_lake: "LAKE", nav_inv: "SHELVES", nav_market: "MARKET", nav_prof: "USER", all: "All", seller_me: "YOU" },
-            uk: { cast: "ЗАКИНУТИ", pull: "ТЯГНИ!", ready: "Готовий?", wait: "Чекай...", bite: "КЛЮЄ!", fish_small: "Маленька рибка", fish_karas: "Мал. карась", fish_pike: "ЗАКОЛОТА ЩУКА", balance: "Баланс", nav_lake: "ОЗЕРО", nav_inv: "ПОЛИЧКИ", nav_market: "РИНОК", nav_prof: "ПРОФІЛЬ", all: "Все", seller_me: "ВИ" }
+            en: { cast: "CAST ROD", pull: "CATCH!", ready: "Ready?", wait: "Wait...", bite: "BITE!", fish_small: "Small Fish", fish_karas: "Karas", fish_pike: "PIKE", balance: "Balance", name: "Name", nav_lake: "LAKE", nav_inv: "SHELVES", nav_market: "MARKET", nav_prof: "USER", all: "All", seller_me: "YOU" },
+            uk: { cast: "ЗАКИНУТИ", pull: "ТЯГНИ!", ready: "Готовий?", wait: "Чекай...", bite: "КЛЮЄ!", fish_small: "Маленька рибка", fish_karas: "Мал. карась", fish_pike: "ЗАКОЛОТА ЩУКА", balance: "Баланс", name: "Ім'я", nav_lake: "ОЗЕРО", nav_inv: "ПОЛИЧКИ", nav_market: "РИНОК", nav_prof: "ПРОФІЛЬ", all: "Все", seller_me: "ВИ" }
         };
 
         const SYS_PRICES = {"fish_small": 5, "fish_karas": 10, "fish_pike": 100};
@@ -100,8 +107,10 @@
             const r = await fetch(`/api/get_user?user_id=${UID}`);
             const d = await r.json();
             if(!d.error) {
-                coins = d.coins; inv = d.inventory || []; lang = d.lang || 'en';
+                coins = d.coins; inv = d.inventory || []; lang = d.lang || 'uk';
                 document.getElementById('balance').innerText = coins;
+                document.getElementById('u-id').innerText = UID;
+                document.getElementById('u-name').innerText = d.name || "Fisherman";
                 document.getElementById('ref-link').value = `https://t.me/Huipizfksnbot?start=${UID}`;
                 document.getElementById('lang-sel').value = lang;
                 updateUI();
@@ -110,16 +119,35 @@
 
         function updateUI() {
             const t = i18n[lang];
-            document.querySelectorAll('[data-lang]').forEach(el => { el.innerText = t[el.getAttribute('data-lang')] || el.innerText; });
+            document.querySelectorAll('[data-lang]').forEach(el => { 
+                const key = el.getAttribute('data-lang');
+                if(t[key]) el.innerText = t[key]; 
+            });
             document.getElementById('action-btn').innerText = isFishing ? t.pull : t.cast;
         }
 
         function startFishing() {
             const btn = document.getElementById('action-btn'), p = document.getElementById('poplavok'), st = document.getElementById('status'), t = i18n[lang];
+            
             if (!isFishing) {
                 isFishing = true; btn.innerText = t.pull; btn.disabled = true; st.innerText = t.wait;
                 p.style.display = "block"; p.classList.remove("bite");
-                setTimeout(() => { p.classList.add("bite"); st.innerText = t.bite; btn.disabled = false; tg.HapticFeedback.impactOccurred('heavy'); }, 2000 + Math.random()*3000);
+                
+                // РУХ ПОПЛАВКА ПО ОЗЕРУ
+                let moves = 0;
+                const moveInterval = setInterval(() => {
+                    p.style.left = Math.floor(Math.random() * 200) + "px";
+                    p.style.top = Math.floor(Math.random() * 200) + "px";
+                    moves++;
+                    if(moves >= 4) {
+                        clearInterval(moveInterval);
+                        p.classList.add("bite");
+                        st.innerText = t.bite;
+                        btn.disabled = false;
+                        tg.HapticFeedback.notificationOccurred('success');
+                    }
+                }, 800);
+
             } else {
                 isFishing = false; p.style.display = "none";
                 let rand = Math.random() * 100;
@@ -132,6 +160,20 @@
             }
         }
 
+        function copyRef() {
+            const link = document.getElementById('ref-link');
+            link.select();
+            document.execCommand('copy');
+            tg.HapticFeedback.impactOccurred('medium');
+            alert(lang === 'uk' ? "Скопійовано!" : "Copied!");
+        }
+
+        function shareRef() {
+            const url = `https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link').value)}&text=Лови рибу та заробляй разом зі мною!`;
+            tg.openTelegramLink(url);
+        }
+
+        // --- ІНШІ ФУНКЦІЇ (Маркет, Інвентар) ---
         function setFilter(f, btn) {
             currentFilter = f;
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('filter-active'));
@@ -155,26 +197,6 @@
             });
         }
 
-        function copyRef() {
-            const link = document.getElementById('ref-link');
-            link.select();
-            document.execCommand('copy');
-            tg.showAlert(lang === 'uk' ? "Скопійовано!" : "Copied!");
-        }
-
-        function shareRef() {
-            const url = `https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link').value)}&text=Join my fishing team!`;
-            tg.openTelegramLink(url);
-        }
-
-        function tab(id, el) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
-            el.classList.add('active-nav');
-            updateUI();
-        }
-
         function renderInv() {
             const grid = document.getElementById('inv-grid'); grid.innerHTML = "";
             const t = i18n[lang];
@@ -193,7 +215,7 @@
         }
 
         async function listMarket(id, idx) {
-            const pr = prompt("Price:");
+            const pr = prompt("Ціна:");
             if(!pr || isNaN(pr)) return;
             const r = await fetch('/api/list_item', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: UID, item_id: id, price: pr}) });
             if((await r.json()).ok) { inv.splice(idx,1); renderInv(); }
@@ -201,7 +223,15 @@
 
         async function buyItem(lot) {
             const r = await fetch('/api/buy_item', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: UID, lot: lot}) });
-            if((await r.json()).ok) load(); loadMarket();
+            if((await r.json()).ok) { load(); loadMarket(); }
+        }
+
+        function tab(id, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+            el.classList.add('active-nav');
+            updateUI();
         }
 
         async function changeLang(v) {
