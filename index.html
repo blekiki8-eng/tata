@@ -7,43 +7,40 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --primary: #00d2ff; --bg: #0f172a; --card: #1e293b; --shelf: #3e2723; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 90px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 90px; -webkit-user-select: none; }
         .tab-content { display: none; flex-direction: column; align-items: center; padding: 15px; min-height: 100vh; box-sizing: border-box; }
         .active { display: flex; }
         
-        #lake { width: 260px; height: 260px; background: radial-gradient(circle, #00f2fe, #004e92); border-radius: 50%; margin: 20px; border: 4px solid #1e293b; position: relative; overflow: hidden; }
-        #poplavok { width: 40px; height: 40px; position: absolute; display: none; transition: all 0.5s ease; z-index: 10; }
+        #lake { width: 260px; height: 260px; background: radial-gradient(circle, #00f2fe, #004e92); border-radius: 50%; margin: 20px; border: 4px solid #1e293b; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(0,210,255,0.2); }
+        #poplavok { width: 50px; height: 50px; position: absolute; display: none; transition: all 0.6s ease; z-index: 10; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
         .bite { animation: shake 0.3s infinite; }
         @keyframes shake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 
         .shelf { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: var(--shelf); padding: 10px; border-radius: 10px; width: 100%; box-sizing: border-box; }
         .slot { background: var(--card); padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; border: 1px solid #334155; }
 
+        .filter-bar { display: flex; gap: 5px; margin-bottom: 15px; width: 100%; overflow-x: auto; padding: 5px; }
+        .filter-btn { background: #334155; color: white; border: none; padding: 8px 12px; border-radius: 20px; font-size: 11px; white-space: nowrap; }
+        .filter-active { background: var(--primary); font-weight: bold; }
+
         .market-slot { background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
-        .my-lot { border: 1px solid var(--primary); }
-
-        .filter-bar { display: flex; gap: 5px; margin-bottom: 15px; width: 100%; overflow-x: auto; padding-bottom: 5px; }
-        .filter-btn { background: #334155; color: white; border: none; padding: 8px 12px; border-radius: 20px; font-size: 12px; white-space: nowrap; }
-        .filter-active { background: var(--primary); }
-
-        .nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #1e293b; padding-bottom: 25px; border-top: 1px solid #334155; }
+        
+        .nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #1e293b; padding-bottom: 25px; border-top: 1px solid #334155; z-index: 100; }
         .nav-item { flex: 1; text-align: center; padding: 15px; color: #94a3b8; font-size: 10px; }
         .active-nav { color: var(--primary); font-weight: bold; }
         
-        .main-btn { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-weight: bold; width: 80%; }
-        .btn-sml { border: none; color: white; padding: 5px; border-radius: 5px; font-size: 9px; margin-top: 4px; width: 100%; cursor: pointer; }
+        .main-btn { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-weight: bold; width: 80%; font-size: 16px; }
+        .btn-sml { border: none; color: white; padding: 5px; border-radius: 5px; font-size: 9px; margin-top: 4px; width: 100%; }
         .copy-row { display: flex; gap: 5px; margin-top: 10px; width: 100%; }
-        .input-box { background: #0f172a; border: 1px solid #334155; color: white; padding: 10px; border-radius: 10px; flex: 1; font-size: 11px; }
+        .input-box { background: #0f172a; border: 1px solid #334155; color: white; padding: 12px; border-radius: 10px; flex: 1; font-size: 11px; }
     </style>
 </head>
 <body>
 
     <div id="fishing-tab" class="tab-content active">
         <h2 data-lang="nav_lake">LAKE</h2>
-        <div id="lake">
-            <img src="poplavok.png" id="poplavok">
-        </div>
-        <div id="status" data-lang="ready" style="margin-bottom:15px">Ready?</div>
+        <div id="lake"><img src="poplavok.png" id="poplavok"></div>
+        <div id="status" data-lang="ready" style="margin-bottom:15px; color: #94a3b8;">Ready?</div>
         <button id="action-btn" class="main-btn" onclick="startFishing()">CAST ROD</button>
     </div>
 
@@ -66,17 +63,16 @@
     <div id="profile-tab" class="tab-content">
         <h2 data-lang="nav_prof">USER</h2>
         <div style="background:var(--card); padding:20px; border-radius:15px; width:100%; box-sizing:border-box; border: 1px solid #334155;">
-            <p>👤 <span data-lang="name">Name</span>: <b id="u-name">Loading...</b></p>
-            <p>🆔 ID: <b id="u-id">000000</b></p>
+            <p>👤 <span data-lang="name">Name</span>: <b id="u-name">...</b></p>
+            <p>🆔 ID: <b id="u-id">0</b></p>
             <p>💰 <span data-lang="balance">Balance</span>: <b id="balance" style="color:var(--primary)">0</b></p>
-            
-            <label style="font-size: 12px; color: #94a3b8;">Referral Link:</label>
+            <hr color="#334155">
+            <label style="font-size:11px; color:#94a3b8">Ref Link:</label>
             <div class="copy-row">
                 <input id="ref-link" readonly class="input-box">
                 <button class="filter-btn" onclick="copyRef()" style="background:#10b981">Copy</button>
                 <button class="filter-btn" onclick="shareRef()" style="background:var(--primary)">Share</button>
             </div>
-
             <select onchange="changeLang(this.value)" id="lang-sel" class="input-box" style="margin-top:20px; width:100%">
                 <option value="en">English</option>
                 <option value="uk">Українська</option>
@@ -119,66 +115,45 @@
 
         function updateUI() {
             const t = i18n[lang];
-            document.querySelectorAll('[data-lang]').forEach(el => { 
-                const key = el.getAttribute('data-lang');
-                if(t[key]) el.innerText = t[key]; 
-            });
+            document.querySelectorAll('[data-lang]').forEach(el => { el.innerText = t[el.getAttribute('data-lang')] || el.innerText; });
             document.getElementById('action-btn').innerText = isFishing ? t.pull : t.cast;
         }
 
         function startFishing() {
             const btn = document.getElementById('action-btn'), p = document.getElementById('poplavok'), st = document.getElementById('status'), t = i18n[lang];
-            
             if (!isFishing) {
                 isFishing = true; btn.innerText = t.pull; btn.disabled = true; st.innerText = t.wait;
-                p.style.display = "block"; p.classList.remove("bite");
+                p.style.display = "block"; p.style.left = "105px"; p.style.top = "105px";
+                p.classList.remove("bite");
                 
-                // РУХ ПОПЛАВКА ПО ОЗЕРУ
                 let moves = 0;
-                const moveInterval = setInterval(() => {
-                    p.style.left = Math.floor(Math.random() * 200) + "px";
-                    p.style.top = Math.floor(Math.random() * 200) + "px";
-                    moves++;
-                    if(moves >= 4) {
-                        clearInterval(moveInterval);
-                        p.classList.add("bite");
-                        st.innerText = t.bite;
-                        btn.disabled = false;
+                const mi = setInterval(() => {
+                    p.style.left = (Math.random() * 180 + 20) + "px";
+                    p.style.top = (Math.random() * 180 + 20) + "px";
+                    if (++moves >= 4) {
+                        clearInterval(mi); p.classList.add("bite"); st.innerText = t.bite; btn.disabled = false;
                         tg.HapticFeedback.notificationOccurred('success');
                     }
                 }, 800);
-
             } else {
                 isFishing = false; p.style.display = "none";
                 let rand = Math.random() * 100;
-                let fId = "fish_small";
-                if(rand < 0.01) fId = "fish_pike";
-                else if(rand < 30) fId = "fish_karas";
-                
+                let fId = rand < 0.01 ? "fish_pike" : (rand < 30 ? "fish_karas" : "fish_small");
                 inv.push({id: fId}); st.innerText = t[fId]; updateUI();
-                fetch('/api/save_user', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: UID, inventory: inv}) });
+                fetch('/api/save_user', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: UID, inventory: inv, coins: coins, lang: lang}) });
             }
         }
 
         function copyRef() {
             const link = document.getElementById('ref-link');
-            link.select();
-            document.execCommand('copy');
+            link.select(); document.execCommand('copy');
             tg.HapticFeedback.impactOccurred('medium');
             alert(lang === 'uk' ? "Скопійовано!" : "Copied!");
         }
 
         function shareRef() {
-            const url = `https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link').value)}&text=Лови рибу та заробляй разом зі мною!`;
+            const url = `https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link').value)}&text=Join me!`;
             tg.openTelegramLink(url);
-        }
-
-        // --- ІНШІ ФУНКЦІЇ (Маркет, Інвентар) ---
-        function setFilter(f, btn) {
-            currentFilter = f;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('filter-active'));
-            btn.classList.add('filter-active');
-            loadMarket();
         }
 
         async function loadMarket() {
@@ -215,7 +190,7 @@
         }
 
         async function listMarket(id, idx) {
-            const pr = prompt("Ціна:");
+            const pr = prompt(lang === 'uk' ? "Ціна:" : "Price:");
             if(!pr || isNaN(pr)) return;
             const r = await fetch('/api/list_item', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: UID, item_id: id, price: pr}) });
             if((await r.json()).ok) { inv.splice(idx,1); renderInv(); }
@@ -224,6 +199,13 @@
         async function buyItem(lot) {
             const r = await fetch('/api/buy_item', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: UID, lot: lot}) });
             if((await r.json()).ok) { load(); loadMarket(); }
+        }
+
+        function setFilter(f, btn) {
+            currentFilter = f;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('filter-active'));
+            btn.classList.add('filter-active');
+            loadMarket();
         }
 
         function tab(id, el) {
