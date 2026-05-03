@@ -20,7 +20,7 @@ db = client["fish_cash_final"]
 users_col = db["users"]
 market_col = db["market"]
 
-# НОВИЙ ПРАЙС-ЛИСТ
+# Оновлений прайс-лист риби
 FISH_DATA = {
     "fish_small": {"price": 5, "chance": 0.70},
     "fish_karas": {"price": 10, "chance": 0.2999},
@@ -30,19 +30,21 @@ FISH_DATA = {
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
     u_id = str(message.from_user.id)
+    u_name = message.from_user.full_name or "Fisherman"
     args = message.text.split()
     referrer = args[1] if len(args) > 1 else None
+
     user = await users_col.find_one({"user_id": u_id})
     if not user:
         await users_col.insert_one({
-            "user_id": u_id, "coins": 100, "lang": "en",
-            "name": message.from_user.full_name or "Fisherman",
-            "inventory": [], "referrals": 0
+            "user_id": u_id, "coins": 100, "lang": "uk",
+            "name": u_name, "inventory": [], "referrals": 0
         })
         if referrer and referrer != u_id:
             await users_col.update_one({"user_id": referrer}, {"$inc": {"coins": 50, "referrals": 1}})
-    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🎣 Play Game", web_app=WebAppInfo(url=WEBAPP_URL))]])
-    await message.answer("Ready to catch a Pike?", reply_markup=kb)
+
+    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🎣 Грати", web_app=WebAppInfo(url=WEBAPP_URL))]])
+    await message.answer(f"Привіт, {u_name}! Готовий до риболовлі?", reply_markup=kb)
 
 async def get_user_data(request):
     user_id = request.query.get("user_id")
@@ -65,9 +67,9 @@ async def sell_to_system(request):
     for idx, item in enumerate(inv):
         if item["id"] == item_id:
             inv.pop(idx)
-            new_balance = user['coins'] + sell_price
+            new_bal = user['coins'] + sell_price
             await users_col.update_one({"user_id": u_id}, {"$set": {"inventory": inv}, "$inc": {"coins": sell_price}})
-            return web.json_response({"ok": True, "new_balance": new_balance})
+            return web.json_response({"ok": True, "new_balance": new_bal})
     return web.json_response({"ok": False})
 
 async def list_on_market(request):
@@ -79,7 +81,10 @@ async def list_on_market(request):
         if item["id"] == item_id:
             inv.pop(idx)
             await users_col.update_one({"user_id": u_id}, {"$set": {"inventory": inv}})
-            await market_col.insert_one({"seller_id": u_id, "seller_name": user.get("name", "Fisherman"), "item_id": item_id, "price": price})
+            await market_col.insert_one({
+                "seller_id": u_id, "seller_name": user.get("name", "Fisherman"),
+                "item_id": item_id, "price": price
+            })
             return web.json_response({"ok": True})
     return web.json_response({"ok": False})
 
